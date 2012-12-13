@@ -1,0 +1,10 @@
+<?xml version="1.0" ?><widget id="http://kangoextensions.com/extensions/fitotastic/" version="0.0.1" xmlns="http://www.w3.org/ns/widgets">
+	<name>fitotastic</name>
+	<description>A set of niceties for Fitocracy</description>
+	<author href="https://github.com/aaronmccall/fitotastic">Aaron McCall</author>
+	<update-description href=""/>
+	<icon src="icons/icon100.png"/>
+	<content src="background.html"/>
+	<access origin="*"/>
+	<feature name="opera:share-cookies"/>
+</widget>

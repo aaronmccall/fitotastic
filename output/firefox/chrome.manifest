@@ -1,0 +1,3 @@
+content fitotastic_kango chrome/content/
+overlay chrome://browser/content/browser.xul chrome://fitotastic_kango/content/content.xul
+resource fitotastic_kango chrome/content/

@@ -1,0 +1,16 @@
+{
+  "kango_version": "1.0.0 final", 
+  "content_scripts": [
+    "content.js"
+  ], 
+  "description": "A set of niceties for Fitocracy", 
+  "creator": "Aaron McCall", 
+  "developer_id": "YOUR_SAFARI_DEVELOPER_ID", 
+  "background_scripts": [
+    "main.js"
+  ], 
+  "homepage_url": "https://github.com/aaronmccall/fitotastic", 
+  "version": "0.0.1", 
+  "id": "com.kangoextensions.fitotastic", 
+  "name": "fitotastic"
+}
