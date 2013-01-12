@@ -68,7 +68,6 @@ var Conversationalist = (function ($, _) {
 			'focus.conversationalist',
 			'.user_comment_textarea',
 			function (e) {
-				console.log('focused comment box');
 				var id = this.id.split("_").pop(),
 					convo = convos[id] || (convos[id] = new Convo(id, this));
 				convo.init();

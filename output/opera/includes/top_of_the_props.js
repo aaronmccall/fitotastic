@@ -4,7 +4,7 @@ http://kangoextensions.com/
 */
 var Totp = (function ($, _) {
     var body = $(document.body),
-        btn = $('<button type="button" class="pill-btn red-btn" id="top_of_the_props">Top Proppers</button>'),
+        link = $('<a href="#" id="top_of_the_props">Top Proppers</a>'),
         counts = {},
         pub = {},
         names = [],
@@ -35,37 +35,13 @@ var Totp = (function ($, _) {
         }
     }
     
-    pub.init = function () {
-        kango.console.log('Initializing Totp.');
-        btn.css({
-            position: "absolute",
-            top: "18px",
-            right: "50px",
-            "z-index": 500
-        });
-        body.prepend(btn);
-        btn.on('click', function (e) {
+    pub.init = function (app) {
+        link.on('click', function (e) {
             e.preventDefault();
-            var $orig_modal = $('#view-all-notifications'),
-                $modal = $orig_modal.clone(true),
-                $modal_h2 = $modal.find('h2'),
+            var $modal = app.getModal('top_proppers', 'Proper Proppers'),
                 $modal_content = $modal.find('.modal_contents');
-            $modal.attr('id','top_proppers').css('height', '400px');
-            $orig_modal.after($modal);
-            $modal.find('.close_modal').click(function (e) {
-                $modal.hide();
-            });
-            $modal_h2.text('Proper Proppers');
-            $modal_content.empty();
-            $modal_content.append('<p style="text-align:center;"><img src="https://s3.amazonaws.com/static.fitocracy.com/site_media/images/ajax-loader.gif" /></p>');
             $modal.show();
-            $modal.position({
-                my: "center",
-                at: "center",
-                of: window
-            });
             $.get(url, function (list_html) {
-                btn.find('img').remove();
                 var list = $(list_html),
                     $ul = $('<ul/>'),
                     proppers = [];
@@ -83,6 +59,7 @@ var Totp = (function ($, _) {
                 $modal_content.append($ul);
             });
         });
+        app.addItem(link);
     };
 
     return pub;
