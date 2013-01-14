@@ -49,10 +49,15 @@ var Mffs = (function ($, _) {
             return (ts1 - ts2) / (60 * 60 * 1000);
         },
         mffs_friends = [],
-        App, $modal, $modal_contents, $list_table, $list_div;
+        App, $modal, $modal_contents, $list_table, $list_div, friend_count;
 
     function get_activity_image(activity) {
-        var image = activity.find('.dramatic-image');
+        var image = activity.find('.dramatic-image').attr('src', function () {
+            var $this = $(this);
+            if ($this.attr('src-attr')) {
+                $this.attr('src', $this.attr('src-attr'));
+            }
+        });
         return image;
     }
 
@@ -80,7 +85,7 @@ var Mffs = (function ($, _) {
     function get_proppables(id, start, callback) {
         // data-ag-type: workout, levelup, questcomplete, badgecomplete
         $.get(stream_urlizer({id: id, start: start}), function (data) {
-            var dom = $(data),
+            var dom = $(data.replace(/src=/g, 'src-attr=')),
                 activities = dom.find('[data-ag-type^=badge],[data-ag-type^=level],[data-ag-type^=quest],[data-ag-type^=work]')
                                 .not(function () {
                                     return !!$(this).find('.proppers a[href="/profile/' + App.me + '/"]').length;
@@ -96,7 +101,10 @@ var Mffs = (function ($, _) {
                     link = $('<a class="proppable" href="#"/>');
                 if (title_body.length) title.push(title_body);
                 if (activity_time) title.push(activity_time);
-                if (!image.length) image = $('<img src="' + new_workout_logo + '">');
+
+                if (!image.length) {
+                    image = $('<img src="' + new_workout_logo + '">');
+                }
                 link.attr({
                     'title': title.join("\n"),
                     'data-activity-id': this.id.split('_').pop()
@@ -164,8 +172,9 @@ var Mffs = (function ($, _) {
                 if (!friends || !friends_includes_page) {
                     console.log('retrieving friends from the server for page:', page);
                     $.get(follower_url + friend_page, function (friends) {
-                        kango.invokeAsync('App.appendUnique', 'friends', friends, function (friends) {
-                            mffs_friends = friends;
+                        kango.invokeAsync('App.appendUnique', 'friends', friends, function (stored_friends) {
+                            if (friends.length < 5) friend_count = stored_friends.length;
+                            mffs_friends = stored_friends;
                         });
                         process_friends(friends, cb);
                     });
@@ -194,7 +203,7 @@ var Mffs = (function ($, _) {
         }
         App.async.whilst(
             function () {
-                return friend_cells < 20;
+                return friend_cells < 20 && (!friend_count || mffs_friends.length < friend_count);
             },
 
             function (cb) {
@@ -280,10 +289,7 @@ var Mffs = (function ($, _) {
                         load_next_stalker_page();
                     }
                 });
-
-                // TODO: Setup navigation through pages of friends
                 create_stalker_page(stalker_page);
-                
             });
             app.addItem(link);
         }
