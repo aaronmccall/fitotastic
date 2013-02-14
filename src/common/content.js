@@ -14,7 +14,10 @@
 // @require includes/bg/app.js
 // ==/UserScript==
 
-var div = $('<div id="fitotastic_container"/>'),
+var $content = $('#content'),
+    content_right = ($content.offset().left + $content.width()),
+    right_margin = $(document).width() - content_right,
+    div = $('<div id="fitotastic_container"/>'),
     btn = $('<button type="button" class="pill-btn red-btn" id="fitotastic">Fitotastic</button>'),
     menu = $('<ul id="fitotastic_menu" class="vert-nav" />'),
     App = {
@@ -87,8 +90,8 @@ var div = $('<div id="fitotastic_container"/>'),
 div.css({
     position: "fixed",
     top: "15px",
-    right: "20px",
-    width: "250px",
+    left: (content_right + 5) + "px",
+    width: (right_margin - 5) + "px",
     "z-index": 50
 });
 menu.css({
