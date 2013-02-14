@@ -7,10 +7,11 @@
 // @require lib/jquery.inputMath.min.js
 // @require lib/underscore.1.4.3.min.js
 // @require lib/async.js
-// @require includes/conversationalist.js
-// @require includes/top_of_the_props.js
-// @require includes/nsfw_hider.js
-// @require includes/my_fito_friend_stalker.js
+// @require includes/ui/conversationalist.js
+// @require includes/ui/top_of_the_props.js
+// @require includes/ui/nsfw_hider.js
+// @require includes/ui/my_fito_friend_stalker.js
+// @require includes/bg/app.js
 // ==/UserScript==
 
 var div = $('<div id="fitotastic_container"/>'),
