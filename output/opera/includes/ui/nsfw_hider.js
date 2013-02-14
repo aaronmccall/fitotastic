@@ -1,7 +1,3 @@
-﻿/*
-Built using Kango - Cross-browser extension framework
-http://kangoextensions.com/
-*/
 // Hide NSFW
 var HideNSFW = (function ($) {
 	var show_nsfw = false, link,

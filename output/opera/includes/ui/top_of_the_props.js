@@ -1,7 +1,3 @@
-﻿/*
-Built using Kango - Cross-browser extension framework
-http://kangoextensions.com/
-*/
 var Totp = (function ($, _) {
     var body = $(document.body),
         link = $('<a href="#" id="top_of_the_props">Top Proppers</a>'),

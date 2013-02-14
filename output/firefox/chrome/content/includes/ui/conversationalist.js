@@ -1,7 +1,3 @@
-﻿/*
-Built using Kango - Cross-browser extension framework
-http://kangoextensions.com/
-*/
 var Conversationalist = (function ($, _) {
 	var convos = {},
 		last_word = /(\w+)$/;

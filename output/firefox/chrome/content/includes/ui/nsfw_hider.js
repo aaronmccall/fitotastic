@@ -1,7 +1,3 @@
-﻿/*
-Built using Kango - Cross-browser extension framework
-http://kangoextensions.com/
-*/
 // Hide NSFW
 var HideNSFW = (function ($) {
 	var show_nsfw = false, link,
@@ -11,7 +7,7 @@ var HideNSFW = (function ($) {
 		getClass = function () {
 			return show_nsfw ? '.down' : '.up';
 		};
-	fitotastic_kango.invokeAsync('kango.storage.getItem', 'show_nsfw', function (show) {
+	kango.invokeAsync('kango.storage.getItem', 'show_nsfw', function (show) {
 		var old_show = show_nsfw;
 		if (show !== null) {
 			show_nsfw = show;
@@ -34,7 +30,7 @@ var HideNSFW = (function ($) {
 			link.click(function (e) {
 				e.preventDefault();
 				show_nsfw = !show_nsfw;
-				fitotastic_kango.invokeAsync('kango.storage.setItem', 'show_nsfw', show_nsfw);
+				kango.invokeAsync('kango.storage.setItem', 'show_nsfw', show_nsfw);
 				$(this).text((show_nsfw ? 'Hide' : 'Show') + ' NSFW');
 				toggle_nsfw(items);
 			});
