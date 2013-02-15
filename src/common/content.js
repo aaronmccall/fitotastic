@@ -117,22 +117,39 @@ $(document.body).append(div).on('click', function (e) {
         $('#mask, .modal_window').hide();
         menu.hide();
     }
+    // Begin charometer functionality
 }).on('focus', '[maxlength]', function (e) {
     var $this = $(this),
         css_props = $.extend({
             position:'relative',
             left:'2px',
             color:'#aaa'
-        }, (this.id === 'status_text') ? { left: '4px' } : { top: '-28px' }),
-        $indicator = indicator_cache[this.id] || (indicator_cache[this.id] = $('<span/>').css(css_props)).insertAfter($this);
+        }, (function (id) {
+                if (id === 'status_text') {
+                    return { left: '4px' };
+                } else if (id === 'info') {
+                    return { top: '-4px' };
+                } else {
+                    return { top: '-28px' };
+                }
+            })(this.id)
+        ),
+        $indicator;
     if (!$this.data('char_remaining_indicator')) {
+        $indicator = indicator_cache[this.id] || (indicator_cache[this.id] = $('<span class="charometer" />').css(css_props)).insertAfter($this);
         $this.keyup(function () {
             $indicator.text($this.prop('maxlength')-$this.val().length);
         });
         $this.data('char_remaining_indicator', true);
     }
     
+}).on('click', '.submitstatus', function () {
+    $('#add_status').find('.charometer').html('');
+}).on('click', '.submitcomment', function () {
+    $(this).prev('.charometer').html('');
+    // End charometer functionality
 });
+
 menu.hide();
 Totp.init(App);
 Conversationalist.init();
