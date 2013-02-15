@@ -4,16 +4,18 @@
 // @include http://www.fitocracy.com/*
 // @require lib/jquery.1.8.3.min.js
 // @require lib/jquery-ui.1.9.2.min.js
-// @require lib/jquery.inputMath.min.js
 // @require lib/underscore.1.4.3.min.js
 // @require lib/async.js
-// @require includes/conversationalist.js
-// @require includes/top_of_the_props.js
-// @require includes/nsfw_hider.js
-// @require includes/my_fito_friend_stalker.js
+// @require includes/ui/conversationalist.js
+// @require includes/ui/top_of_the_props.js
+// @require includes/ui/nsfw_hider.js
+// @require includes/ui/my_fito_friend_stalker.js
 // ==/UserScript==
 
-var div = $('<div id="fitotastic_container"/>'),
+var $content = $('#content'),
+    content_right = ($content.offset().left + $content.width()),
+    right_margin = $(document).width() - content_right,
+    div = $('<div id="fitotastic_container"/>'),
     btn = $('<button type="button" class="pill-btn red-btn" id="fitotastic">Fitotastic</button>'),
     menu = $('<ul id="fitotastic_menu" class="vert-nav" />'),
     App = {
@@ -83,11 +85,59 @@ var div = $('<div id="fitotastic_container"/>'),
         throbber: '<img class="throbber" src="https://s3.amazonaws.com/static.fitocracy.com/site_media/images/ajax-loader.gif" />'
     },
     indicator_cache = {};
+
+// Add PubSub capability to App
+(function(targetObj, defContext) {
+    var topics = {},
+        attachTo = targetObj||this,
+        defaultContext = defContext||this,
+        __slice = function (obj) { return Array.prototype.slice.call(obj); };
+
+    attachTo.publish = function() {
+        var args = __slice(arguments),
+            topic = args.shift();
+        if (topics[topic]) {
+            var currentTopic = topics[topic]||[];
+            for (var i = 0, j = currentTopic.length; i < j; i++) {
+                currentTopic[i].apply(null, args || []);
+            }
+        }
+    };
+
+    attachTo.subscribe = function(topic, callback, context) {
+        var cb = callback.bind ?
+            callback.bind(context||defaultContext) :
+            function () {
+                callback.apply(context||defaultContext, __slice(arguments));
+            };
+        if (!topics[topic]) topics[topic] = [];
+
+        topics[topic].push(cb);
+
+        return { "topic": topic, "callback": cb };
+    };
+
+    attachTo.unsubscribe = function(handle) {
+        var topic = handle.topic;
+
+        if (topics[topic]) {
+            var currentTopic = topics[topic];
+
+            for (var i = 0, j = currentTopic.length; i < j; i++) {
+                if (currentTopic[i].callback === handle.callback) {
+                    currentTopic.splice(i, 1);
+                }
+            }
+        }
+    };
+
+})(App);
+
 div.css({
     position: "fixed",
     top: "15px",
-    right: "20px",
-    width: "250px",
+    left: (content_right + 5) + "px",
+    width: (right_margin - 5) + "px",
     "z-index": 50
 });
 menu.css({
@@ -109,32 +159,49 @@ $(document.body).append(div).on('click', function (e) {
         menu.hide();
     }
 }).on('keydown', function (e) {
+    // Escape key to hide modals and fitotastic menu
     if ((e.keyCode && e.keyCode === 27)) {
         $('#mask, .modal_window').hide();
         menu.hide();
     }
+    // Begin charometer functionality
 }).on('focus', '[maxlength]', function (e) {
     var $this = $(this),
         css_props = $.extend({
             position:'relative',
             left:'2px',
             color:'#aaa'
-        }, (this.id === 'status_text') ? { left: '4px' } : { top: '-28px' }),
-        $indicator = indicator_cache[this.id] || (indicator_cache[this.id] = $('<span/>').css(css_props)).insertAfter($this);
+        }, (function (id) {
+                if (id === 'status_text') {
+                    return { left: '4px' };
+                } else if (id === 'info') {
+                    return { top: '-4px' };
+                } else {
+                    return { top: '-28px' };
+                }
+            })(this.id)
+        ),
+        $indicator;
     if (!$this.data('char_remaining_indicator')) {
+        $indicator = indicator_cache[this.id] || (indicator_cache[this.id] = $('<span class="charometer" />').css(css_props)).insertAfter($this);
         $this.keyup(function () {
             $indicator.text($this.prop('maxlength')-$this.val().length);
         });
         $this.data('char_remaining_indicator', true);
     }
     
+}).on('click', '.submitstatus', function () {
+    $('#add_status').find('.charometer').html('');
+}).on('click', '.submitcomment', function () {
+    $(this).prev('.charometer').html('');
+    // End charometer functionality
 });
+
 menu.hide();
 Totp.init(App);
 Conversationalist.init();
 HideNSFW.init(App);
 Mffs.init(App);
-$('#entry_items').inputMath(null, 'input:visible');
 
 $(document).ajaxSend(function(event, xhr, settings) {
     function sameOrigin(url) {

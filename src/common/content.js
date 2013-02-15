@@ -10,7 +10,6 @@
 // @require includes/ui/top_of_the_props.js
 // @require includes/ui/nsfw_hider.js
 // @require includes/ui/my_fito_friend_stalker.js
-// @require includes/bg/app.js
 // ==/UserScript==
 
 var $content = $('#content'),
@@ -86,6 +85,54 @@ var $content = $('#content'),
         throbber: '<img class="throbber" src="https://s3.amazonaws.com/static.fitocracy.com/site_media/images/ajax-loader.gif" />'
     },
     indicator_cache = {};
+
+// Add PubSub capability to App
+(function(targetObj, defContext) {
+    var topics = {},
+        attachTo = targetObj||this,
+        defaultContext = defContext||this,
+        __slice = function (obj) { return Array.prototype.slice.call(obj); };
+
+    attachTo.publish = function() {
+        var args = __slice(arguments),
+            topic = args.shift();
+        if (topics[topic]) {
+            var currentTopic = topics[topic]||[];
+            for (var i = 0, j = currentTopic.length; i < j; i++) {
+                currentTopic[i].apply(null, args || []);
+            }
+        }
+    };
+
+    attachTo.subscribe = function(topic, callback, context) {
+        var cb = callback.bind ?
+            callback.bind(context||defaultContext) :
+            function () {
+                callback.apply(context||defaultContext, __slice(arguments));
+            };
+        if (!topics[topic]) topics[topic] = [];
+
+        topics[topic].push(cb);
+
+        return { "topic": topic, "callback": cb };
+    };
+
+    attachTo.unsubscribe = function(handle) {
+        var topic = handle.topic;
+
+        if (topics[topic]) {
+            var currentTopic = topics[topic];
+
+            for (var i = 0, j = currentTopic.length; i < j; i++) {
+                if (currentTopic[i].callback === handle.callback) {
+                    currentTopic.splice(i, 1);
+                }
+            }
+        }
+    };
+
+})(App);
+
 div.css({
     position: "fixed",
     top: "15px",
@@ -112,6 +159,7 @@ $(document.body).append(div).on('click', function (e) {
         menu.hide();
     }
 }).on('keydown', function (e) {
+    // Escape key to hide modals and fitotastic menu
     if ((e.keyCode && e.keyCode === 27)) {
         $('#mask, .modal_window').hide();
         menu.hide();
