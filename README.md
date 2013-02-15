@@ -21,6 +21,6 @@ Have a lot of friends to keep up with and pepper with props? Friend Stalker let'
 
 Use the same computer at home and work? Tired of digging around to change NSFW settings? Now you can leave your NSFW settings on the site set for work and toggle them on when you're at home with the click of a button.
 
-# Char-ometer
+### Char-ometer
 
 Do you have alot to say? Worried that Fito is going to cut you off? Let Char-ometer tell you how many characters you have left. 
