@@ -4,7 +4,6 @@
 // @include http://www.fitocracy.com/*
 // @require lib/jquery.1.8.3.min.js
 // @require lib/jquery-ui.1.9.2.min.js
-// @require lib/jquery.inputMath.min.js
 // @require lib/underscore.1.4.3.min.js
 // @require lib/async.js
 // @require includes/ui/conversationalist.js
@@ -155,7 +154,6 @@ Totp.init(App);
 Conversationalist.init();
 HideNSFW.init(App);
 Mffs.init(App);
-$('#entry_items').inputMath(null, 'input:visible');
 
 $(document).ajaxSend(function(event, xhr, settings) {
     function sameOrigin(url) {
