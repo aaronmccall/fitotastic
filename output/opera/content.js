@@ -6,10 +6,13 @@
 // @require lib/jquery-ui.1.9.2.min.js
 // @require lib/underscore.1.4.3.min.js
 // @require lib/async.js
+// @require includes/ui/templates.js
+// @require includes/ui/images.js
 // @require includes/ui/conversationalist.js
 // @require includes/ui/top_of_the_props.js
 // @require includes/ui/nsfw_hider.js
 // @require includes/ui/my_fito_friend_stalker.js
+// @require includes/ui/dissaprop.js
 // ==/UserScript==
 
 var $content = $('#content'),
@@ -189,7 +192,6 @@ $(document.body).append(div).on('click', function (e) {
         });
         $this.data('char_remaining_indicator', true);
     }
-    
 }).on('click', '.submitstatus', function () {
     $('#add_status').find('.charometer').html('');
 }).on('click', '.submitcomment', function () {
@@ -202,6 +204,7 @@ Totp.init(App);
 Conversationalist.init();
 HideNSFW.init(App);
 Mffs.init(App);
+DPN.init(App);
 
 $(document).ajaxSend(function(event, xhr, settings) {
     function sameOrigin(url) {
