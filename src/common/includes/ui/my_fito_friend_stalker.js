@@ -14,12 +14,15 @@ var Mffs = (function ($, _) {
         following_url = 'https://www.fitocracy.com/get-user-friends/?user=aaronmccall&following=true&page=',
         stream_urlizer = _.template('https://www.fitocracy.com/activity_stream/<%= start %>/?user_id=<%= id %>'),
         pp_urlizer = _.template('https://s3.amazonaws.com/static.fitocracy.com/site_media/<%= pic %>'),
+        profile_urlizer = _.template('<a href="/profile/<%= username %>/"><%= at_name %></a>'),
         friend_page = 0,
         friends_per_friend_page = 5,
         stalker_page = 1,
         friends_per_stalker_page = 20,
         stalker_pages = {},
         prop_activity_url = 'https://www.fitocracy.com/give_prop/',
+        activity_comment_url = '/add_comment/',
+        profile_status_url = '/add_status/',
         stream_step = 15,
         friend_cells = 0,
         MAX_GOTO_VISIBLE = 12,
@@ -155,10 +158,12 @@ var Mffs = (function ($, _) {
     function process_friends(friends, cb, opts) {
         var row = $('<tr>');
         _.each(friends, function (friend) {
-            if (!friend) return console.log('no friend!'), cb();
             friend.pic_url = pp_urlizer(friend);
             friend.throbber = App.throbber;
-            friend.el = friend.el || $(friend_renderer(friend));
+            friend.info = friend.info.replace(/@(\w+)/g, function (at_name, username) {
+                return profile_urlizer({username: username, at_name: at_name});
+            }).replace(/\n{2,}/g, "\n").trim();
+            friend.el = friend.el || $(templatizer.mffs.friend(friend));
             row.append(friend.el);
             add_proppables_to_friend(friend);
             friend_cells++;
@@ -195,8 +200,7 @@ var Mffs = (function ($, _) {
 
     }
 
-    function clear_stalker_page(page) {
-        if (!stalker_pages[page]) stalker_pages[page] = $list_table.html();
+    function clear_stalker_page() {
         $list_table.find('tr').remove();
     }
 
@@ -213,7 +217,7 @@ var Mffs = (function ($, _) {
             $modal_contents.find('p:last').html(App.throbber);
         }
         if (!$mffs_pages.find('[data-mffs_page="' + page + '"]').length) {
-            var $page_link = $('<a href="#" data-mffs_page="' + page + '" />').addClass('mffs_goto').text(''+page);
+            var $page_link = templatizer.mffs.goto_link({page: page});
             if ($prev_page.length) {
                 $prev_page.after($page_link);
             } else {
@@ -236,23 +240,19 @@ var Mffs = (function ($, _) {
     }
 
     function load_next_stalker_page() {
-        clear_stalker_page(stalker_page);
+        clear_stalker_page();
         load_stalker_page(++stalker_page);
     }
 
     function load_prev_stalker_page() {
-        clear_stalker_page(stalker_page);
+        clear_stalker_page();
         load_stalker_page(--stalker_page);
     }
 
     function load_stalker_page(page) {
         App.publish('change:stalker_page');
-        if (stalker_pages[page]) {
-            $list_table.html(stalker_pages[page]);
-            App.publish('reload:stalker_page', page);
-        } else {
-            create_stalker_page(page);
-        }
+        clear_stalker_page();
+        create_stalker_page(page);
         var gt = $('.mffs_goto'),
             pages = gt.length,
             sliding = pages > MAX_GOTO_VISIBLE,
@@ -281,36 +281,32 @@ var Mffs = (function ($, _) {
             link.click(function (e) {
                 e.preventDefault();
                 var $header = $('#wrapper').find('header'),
-                    mffs_style = $('<style />'),
-                    mffs_prev = '<a class="mffs_prev" href="#">&laquo; Prev</a>',
-                    mffs_pages = '<div class="mffs_pages" />',
-                    mffs_next = '<a class="mffs_next" href="#">Next &raquo;</a>';
-                
+                    mffs_style = $('#mffs_style');
                 $list_div = $list_div || $('<div class="friend-list"/>');
                 $list_table = $list_table || $('<table style="border:none" />');
                 $modal = app.getModal('mffs_modal', 'My Friends', { height: 'auto' }, {
                     my: 'center top',
-                    at: 'center top+' + $header.height(),
+                    at: 'center top+' + 16,
                     of: 'body',
                     collision: 'none'
                 });
                 $modal_contents = $modal.find('.modal_contents')
-                                        .css({ 'height': '600px', overflow: 'scroll' });
+                                        .css({ 'height': '756px', overflow: 'scroll' });
                 if (!$modal_contents.find('.friend-list').length) {
                     $list_div.append($list_table);
                     $modal_contents.prepend($list_div);
                     $modal.find('h2').css({
                         display: 'inline-block',
                         'margin-right': '1em'
-                    }).after($('<div class="mffs_nav">' + mffs_prev + mffs_pages + mffs_next + '</div>'));
-                    mffs_style.html(friend_css);
-                    $(document.body).append(mffs_style);
-                    $modal.show(0, function () {
-                        $('#mask').show().css('opacity', 0.5);
-                    });
+                    }).after(templatizer.mffs.nav());
+                    if (!mffs_style.length) {
+                        mffs_style = $('<style id="mffs_style" />');
+                        mffs_style.html(templatizer.mffs.style());
+                        $(document.body).append(mffs_style);
+                    }
 
                     // Setup click handling for the proppables
-                    $modal.on('click', '.proppable', function (e) {
+                    $modal.on('click', '.proppable a', function (e) {
                         var $this = $(this),
                             propped = $this.is('.propped');
                         if (!propped || !!~this.href.indexOf('#')) {
@@ -329,10 +325,43 @@ var Mffs = (function ($, _) {
                         } else {
                             load_next_stalker_page();
                         }
+                    }).on('click', '.mffs_detail button', function (e) {
+                        e.preventDefault();
+                        var $this = $(this),
+                            $proppable = $this.closest('.proppable'),
+                            is_proppable = !!$proppable.length,
+                            $parent = is_proppable ? $proppable : $this.closest('.mffs_friend'),
+                            $comment = $parent.find('textarea:first'),
+                            comment_text = $comment.val(),
+                            id = $parent.data('id'),
+                            url, payload;
+                        if (is_proppable) {
+                            url = activity_comment_url;
+                            payload = { ag: id, comment_text: comment_text };
+                        } else {
+                            url = profile_status_url;
+                            payload = { profile_user: id, status_text: comment_text };
+                        }
+                        $.post(url, payload, function (data) {
+                            if (data && data.result) {
+                                $this.prevAll('.charometer').remove();
+                                $this.text('Success!').fadeOut('slow');
+                                $comment.replaceWith('<p class="comment_confirm">You said: <em>' + comment_text + '</em></p>');
+                            } else {
+                                $this.text('Failed!');
+                                setTimeout(function () {
+                                    $this.prop('disabled', false).text('Comment');
+                                }, 500);
+                            }
+                        }, 'json');
+                        $this.prop('disabled', true).text('Saving...');
                     });
+                    create_stalker_page(stalker_page);
                 }
+                $modal.show(0, function () {
+                    $('#mask').show().css('opacity', 0.5);
+                });
 
-                create_stalker_page(stalker_page);
             });
             app.addItem(link);
             // Abort all proppables requests that have not completed.
@@ -341,7 +370,6 @@ var Mffs = (function ($, _) {
                 proppables_xhr_queue = [];
                 _(old_queue).each(function (xhr) {
                     if (xhr && xhr.readyState === 4) return;
-                    console.log('aborting proppable request');
                     if (xhr && xhr.abort) xhr.abort();
                 });
             });
@@ -350,11 +378,6 @@ var Mffs = (function ($, _) {
                 var start = (page - 1) * friends_per_stalker_page,
                     end = page * friends_per_stalker_page,
                     friends = mffs_friends.slice(start, end);
-                friends.forEach(function (friend) {
-                    var el = friend.el || (friend.el = $list_table.find('#user_' + friend.id));
-                    el.find('.proppables').html(App.throbber);
-                    add_proppables_to_friend(friend);
-                });
             });
         }
     };
