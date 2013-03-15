@@ -1,0 +1,12 @@
+span.proppable(data-id=id)
+  a(title=title, href=href, data-activity-id=id)
+    img(src=image_src)
+  span.mffs_detail
+    h4= title
+      span= age
+    ul
+      if details.length
+        each item in details
+          li= item
+    textarea(maxlength=500, cols=27, rows=5)
+    button.pill-btn.munsell-blue-btn Comment

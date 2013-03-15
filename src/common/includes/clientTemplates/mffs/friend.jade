@@ -1,0 +1,15 @@
+td(id="user_"+id)
+  .mffs_friend(data-id=id)
+    img.friend_pp(src=pic_url)
+    span.mffs_user= username
+
+    .mffs_detail
+      ul
+        li
+          a(href="/profile/" + username + '/')
+            strong= username
+            em= ' (' + level + ')'
+        li.info!= info
+      textarea(maxlength=500, cols=27, rows=5)
+      button.pill-btn.munsell-blue-btn Post
+  p.proppables!= throbber
