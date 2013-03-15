@@ -6,6 +6,8 @@
   "description": "A set of niceties for Fitocracy", 
   "creator": "Aaron McCall", 
   "background_scripts": [
+    "lib/underscore.1.4.3.min.js", 
+    "lib/jquery.1.8.3.min.js", 
     "main.js"
   ], 
   "homepage_url": "https://github.com/aaronmccall/fitotastic", 
