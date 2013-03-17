@@ -362,6 +362,9 @@ var Mffs = (function ($, _) {
                             }
                         }, 'json');
                         $this.prop('disabled', true).text('Saving...');
+                    }).on('click', '.prop_all', function (e) {
+                        e.preventDefault();
+                        $('.proppable a', $list_table).not('.propped').each(function () { this.click() });
                     });
                     create_stalker_page(stalker_page);
                 }

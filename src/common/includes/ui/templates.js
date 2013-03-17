@@ -100,7 +100,7 @@ exports.mffs.nav = function anonymous(locals, attrs, escape, rethrow, merge) {
     with (locals || {}) {
         var interp;
         var __indent = [];
-        buf.push('\n<div class="mffs_nav"><a href="#" class="mffs_prev">&laquo; Prev</a>\n  <div class="mffs_pages"></div><a href="#" class="mffs_next">Next &raquo;</a>\n</div>');
+        buf.push('\n<div class="mffs_nav"><a href="#" class="mffs_prev">&laquo;</a>\n  <div class="mffs_pages"></div><a href="#" class="mffs_next">&raquo;</a>\n  <button class="prop_all pill-btn munsell-blue-btn">Prop All</button>\n</div>');
     }
     return buf.join("");
 };
