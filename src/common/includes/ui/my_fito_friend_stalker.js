@@ -179,21 +179,28 @@ var Mffs = (function ($, _) {
         if (mffs_friends.length > end_friend) {
             process_friends(mffs_friends.slice(start_friend, end_friend), cb);
         } else {
-            kango.invokeAsync('kango.storage.getItem', 'friends', function (friends) {
-                var friends_includes_page = (friends && friends.length && (friends.length >= end_friend));
-                if (friends) {
-                    mffs_friends = friends;
-                }
-                if (!friends || !friends_includes_page) {
-                    $.get(follower_url + friend_page, function (friends) {
-                        kango.invokeAsync('App.appendUnique', 'friends', friends, function (stored_friends) {
-                            if (friends.length < 5) friend_count = stored_friends.length;
-                            mffs_friends = stored_friends;
-                        });
-                        process_friends(friends, cb);
-                    });
-                } else {
-                    process_friends(friends.slice(start_friend, end_friend), cb);
+            // kango.invokeAsync('kango.storage.getItem', 'friends', function (friends) {
+            //     var friends_includes_page = (friends && friends.length && (friends.length >= end_friend));
+            //     if (friends) {
+            //         mffs_friends = friends;
+            //     }
+            //     if (!friends || !friends_includes_page) {
+            //         $.get(follower_url + friend_page, function (friends) {
+            //             kango.invokeAsync('App.appendUnique', 'friends', friends, function (stored_friends) {
+            //                 if (friends.length < 5) friend_count = stored_friends.length;
+            //                 mffs_friends = stored_friends;
+            //             });
+            //             process_friends(friends, cb);
+            //         });
+            //     } else {
+            //         process_friends(friends.slice(start_friend, end_friend), cb);
+            //     }
+            // });
+            $.get(follower_url + friend_page, function (friends) {
+                if (_.isArray(friends)) {
+                    mffs_friends = mffs_friends.concat(friends);
+                    if (friends.length < 5) friend_count = mffs_friends.length;
+                    process_friends(friends, cb);
                 }
             });
         }
