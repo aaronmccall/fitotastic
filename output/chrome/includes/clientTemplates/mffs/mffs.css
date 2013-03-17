@@ -1,3 +1,12 @@
+#mffs_modal h2 {
+  font-size: 24px;
+}
+#mffs_modal .modal_contents {
+  padding-top: 0;
+}
+#mffs_modal .widget-subsection:first-of-type {
+  padding: 6px 12px;
+}
 #mffs_modal .mffs_friend {
   position: relative;
   display: block;
@@ -74,36 +83,43 @@
 #mffs_modal .mffs_nav {
   position: absolute;
   top: 12px;
-  left: 162px;
-  width: 500px;
+  left: 152px;
+  width: 300px;
 }
-#mffs_modal .mffs_next,
-#mffs_modal .mffs_prev {
-  width: 3em;
+#mffs_modal .mffs_nav .prop_all {
+  position: absolute;
+  top: -8px;
+  right: -100px;
+}
+#mffs_modal .mffs_nav .mffs_next,
+#mffs_modal .mffs_nav .mffs_prev {
   line-height: 150%;
   height: 1.5em;
   position: absolute;
   top: 0;
 }
-#mffs_modal .mffs_next {
+#mffs_modal .mffs_nav .mffs_next {
   text-align: right;
   right: 0px;
 }
-#mffs_modal .mffs_prev {
+#mffs_modal .mffs_nav .mffs_prev {
   left: 0px;
 }
 #mffs_modal .mffs_nav a {
-  font-size: 2em;
+  min-width: 1em;
+  max-width: 1.5em;
+  font-size: 1.5em;
+  text-align: center;
   text-decoration: none;
   border-radius: 4px;
 }
 #mffs_modal .mffs_nav a:hover,
-#mffs_modal .mffs_nav .mffs_active {
+#mffs_modal .mffs_nav a.mffs_active {
   background: #c6e9f6;
   color: #0f536d;
 }
 #mffs_modal .mffs_pages {
-  margin: 0 6.25em;
+  margin: 0 1.5em;
   border: 1px solid #ccc;
   border-width: 0px 1px;
   overflow: hidden;
@@ -111,10 +127,8 @@
 }
 #mffs_modal .mffs_goto {
   display: inline-block;
-  width: 1em;
   line-height: 150%;
   height: 1.5em;
-  text-align: center;
   margin-right: 0.15em;
 }
 #mffs_modal table tr:last-of-type .mffs_detail,
@@ -128,7 +142,7 @@
   padding-left: 0;
 }
 #mffs_modal table tr td:last-child .mffs_detail,
-#mffs_modal table tr td:nth-last-child(-n+2) .mffs_detail {
+#mffs_modal table tr td:nth-last-child(n+4) .mffs_detail {
   left: auto;
   right: 42px;
 }

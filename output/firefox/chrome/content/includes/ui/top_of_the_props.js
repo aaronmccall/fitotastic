@@ -30,11 +30,16 @@ var Totp = (function ($, _) {
             counts[propper] += 1;
         }
     }
-    
+
     pub.init = function (app) {
         link.on('click', function (e) {
             e.preventDefault();
-            var $modal = app.getModal('top_proppers', 'Proper Proppers'),
+            var $modal = app.getModal('top_proppers', 'Top Proppers', null, {
+                    my: 'center top',
+                    at: 'center top+' + 16,
+                    of: 'body',
+                    collision: 'none'
+                }),
                 $modal_content = $modal.find('.modal_contents');
             $modal.show();
             $.get(url, function (list_html) {

@@ -86,7 +86,7 @@ var Mffs = (function ($, _) {
             activities.each(function () {
                 var $this = $(this),
                     activity_type = $this.attr('data-ag-type'),
-                    title = [(activity_type === 'workout') ? $this.find('.stream_total_points').text().trim() : $this.find('.dramatic-title').text().trim()],
+                    title = [(activity_type === 'workout') ? $this.find('.stream_total_points').text().trim() : $this.find('.dramatic-title:first').text().trim()],
                     activity_detail = (activity_type === 'workout') ? (function (el) {
                         var items = el.find('.action_detail > li'),
                             output = [];
@@ -242,6 +242,8 @@ var Mffs = (function ($, _) {
 
             function (err) {
                 $modal_contents.find('.throbber:last').remove();
+                $('.mffs_next')[($list_table.find('td').length < 20)?'hide':'show']();
+                $('.mffs_prev')[(stalker_page===1)?'hide':'show']();
             }
         );
     }
@@ -308,7 +310,7 @@ var Mffs = (function ($, _) {
                     }).after(templatizer.mffs.nav());
                     if (!mffs_style.length) {
                         mffs_style = $('<style id="mffs_style" />');
-                        mffs_style.html(templatizer.mffs.style());
+                        mffs_style.text($(templatizer.mffs.style()).text());
                         $(document.body).append(mffs_style);
                     }
 
@@ -362,6 +364,9 @@ var Mffs = (function ($, _) {
                             }
                         }, 'json');
                         $this.prop('disabled', true).text('Saving...');
+                    }).on('click', '.prop_all', function (e) {
+                        e.preventDefault();
+                        $('.proppable a', $list_table).not('.propped').each(function () { this.click() });
                     });
                     create_stalker_page(stalker_page);
                 }

@@ -39,7 +39,7 @@ var DPN = (function () {
         end = 0;
     return {
         init: function (app) {
-            var $nuke_link = $('<a/>').attr({href: '#', "class": "dpn_nuke"}).text('Nuke unclicked prop notifications.');
+            var $nuke_link = $('<a/>').attr({href: '#', "class": "dpn_nuke"}).text('Prop Bomb Neutralizer');
             $nuke_link.on('click.dpn', function (e) {
                 e.preventDefault();
                 get_notifications(processor);
