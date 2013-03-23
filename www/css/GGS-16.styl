@@ -1,0 +1,40 @@
+@import 'GGS-config' unless $column is defined and $outer-margin is defined
+@import 'GGS-mixins'
+
+$grid-size=16
+
+/*!
+ *
+ *  Sixteen-column grid active
+ *  ----------------------------------------------------------------------------------------------------------------------
+ *  Margin   | #  1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16  |   Margin
+ *  5.55555% | %  6.25  12.5  18.75 25.0  31.25 37.5  43.75 50.0  56.25 62.5  68.75 75.0  81.25 87.5  93.75 100 | 5.55555%
+ *
+ *
+ */
+/*! @media screen and (min-width: 1872px) */
+@media screen and (min-width: 117em)
+    debug('min-width: 117em/1872px (16 columns)')
+
+    header
+    .content
+        margin  0 $column*1
+
+    header .wrapper
+    .content > .wrapper
+        ggs-width(12)
+        ggs-margin(3)
+
+    .twoway
+        .wrapper
+            ggs-width(8)
+
+
+
+@media screen and (min-width: 130em)
+    debug('min-width: 130em/2080px (16 columns)')
+
+    body
+        /* Zoom baseline grid to 18/16 = 1.125 */
+        font-size   1em * ( (2+$font-size) / $font-size)
+        max-width   1em * (10*$font-size)

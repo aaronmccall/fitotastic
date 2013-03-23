@@ -1,0 +1,62 @@
+/**
+ *  GGS Mixins
+ *  v0.1
+ *  -----------------------------------------------------------------
+ *  @author     Zearin <https://github.com/zearin/)
+ *  @created    2011-10-26
+ *  -----------------------------------------------------------------
+ */
+
+// @import 'nib'           unless  vendor-prefixes is defined
+@import 'GGS-config'    unless  $column is defined
+
+ggs-columns( $columns )
+    unless $grid-size is defined
+        error('$grid-size is undefined')
+    100 * unit(($columns/$grid-width),'%')
+
+/*
+ *  Returns the width of a single column as a percent.
+ */
+ggs-width-column()
+    unless $grid-size is defined
+        error('$grid-size is undefined')
+    return  unit(( 100 / $grid-size ),'%')
+
+
+
+/*
+ *  Returns the width of $columns as a percent.
+ */
+ggs-width-columns( $columns )
+    unless $columns is a 'unit'
+        error('argument must be a number')
+    return  unit(($columns * ggs-width-column()),'%')
+
+/*
+ *  Sets `width` (as a percent) using $columns.
+ */
+ggs-width( $columns )
+    width   ggs-width-columns( $columns )
+
+/*
+ *  Sets `margin-left` %
+ */
+ggs-margin( $columns, $side='left' )
+    margin-{$side}  ggs-width-columns( $columns )
+
+/*
+ *  Sets the baseline grid
+ */
+ggs-zoom-baseline()
+    body
+        /* Zoom baseline grid to 17/16 = 1.0625 */
+        font-size   1em * ((1 + $font-size) / $font-size)
+
+/*
+ *  Resets the baseline grid.
+ */
+ggs-reset-baseline()
+    body
+        /* Reset baseline grid to 16/16 = 1 */
+        font-size   1em

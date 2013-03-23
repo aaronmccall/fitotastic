@@ -1,0 +1,223 @@
+/*!
+ *
+ *  Golden Grid System (1.01)	<http://goldengridsystem.com/>
+ *  by Joni Korpi 				<http://jonikorpi.com/>
+ *  licensed under MIT			<http://opensource.org/licenses/mit-license.php>
+ *
+ */
+@import 'GGS-config'
+@import 'gh-ribbon-mixins'
+
+/*!
+ *
+ *   Margin padding and border resets
+ *   except for form elements
+ *
+ */
+@import 'GGS-reset'
+
+
+//  WORKAROUND
+//
+//  Stylus won't print block comments from imported files.
+//
+//  @see    https://github.com/LearnBoost/stylus/issues/444
+//
+//  Copying block comments here as a workaround,
+//  In order to see where @imported files are
+//  concatenated in the output.
+//
+
+/*!
+ *
+ *    Consistency fixes adopted from
+ *    http//necolas.github.com/normalize.css/
+ *
+ */
+@import 'GGS-consistency'
+
+/*!
+ *
+ *    Simple fluid media
+ *
+ */
+@import 'GGS-fluid-media'
+
+
+/*!
+ *
+ *   Zoomable baseline grid
+ *   type size presets
+ *
+ */
+@import 'GGS-baseline'
+
+@import 'fonts/fonts'
+
+body
+    font-family: Goudy Bookletter, serif
+
+header
+    margin  0 $outer-margin
+
+header
+    h1
+        font-family: Chunk, serif
+        font-weight: bold
+
+        a
+        	text-decoration none
+        	&:hover
+        	&:visited
+        	&:active
+        	&:link
+        		color: black
+
+h1
+h2
+    margin  (1em * 36/42) 0 (1em * 42/48)
+h2
+    text-shadow 1px 1px 2px #aaa
+h3
+    margin  (1em * 26/36) 0 (1em * 26/36)
+h3
+h4
+	small()
+	font-family Chunk, serif
+h4
+	font-size (11/$font-size) * 1em
+	line-height (($line * 0.75) / $font-size * ($font-size / 11)) * 1em
+
+.more
+	position relative
+	prefix 'border-radius' 4px
+
+	&:target
+		background #f3fff3
+
+		&::before
+			content "\276f"
+			position absolute
+			font-size 2em
+			left -0.25em
+			top 0.15em
+.twoway
+	.more::before
+		top 0.5em
+img
+.img
+	display inline-block
+	float right
+	margin 0.5em 0.5em
+	border 1px solid rgba(0,0,0, 0.25)
+	prefix 'border-radius' 4px
+	box-shadow 2px 2px 4px rgba(255,255,255, 0.25), 1px 1px 3px 1px rgba(0,0,0, 0.25) inset
+
+	&.ctr
+		float none
+		display block
+		margin 0 auto
+
+.left
+	float left !important
+
+#stalker
+	p
+		border-top 2px solid #dfd
+	.img
+		background url("../images/stalker.jpg")
+	.user_detail
+		width 178px
+		height 152px
+		background-position -426px -58px
+
+	.workout_detail
+		width 178px
+		height 260px
+		background-position -53px -200px
+
+	.no_workouts
+		width 178px
+		height 42px
+		background-position -346px -506px
+
+	.all_propped
+		width 178px
+		height 42px
+		background-position -346px -676px
+
+	.activity_icons
+		width 178px
+		height 42px
+		background-position -236px -338px
+
+	.prop_all
+		width 178px
+		height 42px
+		background-position -404px -8px
+
+/*!
+ *  Simple elastic gutters
+ *  Note: box-sizing will not work in IE6-8
+ */
+.wrapper
+    padding     0 0.75em
+    box-sizing  border-box
+
+    &:after
+    	content " "
+    	display table
+    	clear both
+
+/*!
+ *
+ *  Fixes for IE6-8
+ *  http://jonikorpi.com/leaving-old-IE-behind/
+ *
+ */
+.ie
+    body
+        width       1em * (640/$font-size)
+        margin      0 auto
+        font-size   1em * ((1+$font-size)/$font-size)
+
+    h1
+        huge()
+        margin      (1em * (48/42)) 0 (1em * (24/42))
+
+
+@import 'gh-ribbon'
+
+/*!
+ *
+ *  Four-column grid active
+ *  ----------------------------------------
+ *  Margin   | #  1   2   3   4   |   Margin
+ *  5.55555% | %  25  50  75  100 | 5.55555%
+ *
+ */
+@import 'GGS-4'
+
+
+/*!
+ *
+ *  Eight-column grid active
+ *  ----------------------------------------------------------------------
+ *  Margin   | #  1     2     3     4     5     6     7     8   |   Margin
+ *  5.55555% | %  12.5  25.0  37.5  50.0  62.5  75.0  87.5  100 | 5.55555%
+ *
+ *
+ */
+@import 'GGS-8'
+
+
+/*!
+ *
+ *  Sixteen-column grid active
+ *  ----------------------------------------------------------------------------------------------------------------------
+ *  Margin   | #  1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16  |   Margin
+ *  5.55555% | %  6.25  12.5  18.75 25.0  31.25 37.5  43.75 50.0  56.25 62.5  68.75 75.0  81.25 87.5  93.75 100 | 5.55555%
+ *
+ *
+ */
+@import 'GGS-16'

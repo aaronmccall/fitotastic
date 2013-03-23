@@ -1,0 +1,75 @@
+@import 'GGS-config' unless $column is defined and $outer-margin is defined
+
+/*!
+ *
+ *   Zoomable baseline grid
+ *   type size presets
+ *
+ */
+body
+    /* 16px / 24px */
+    font-size   $em
+    line-height 1.5em
+
+
+//  Although I prefer Stylus to LESS...
+//
+//  As far as I can tell... the LESS feature where classes
+//  may be seamlessly used as mixins isn’t available in Stylus.
+//  (But don’t hold me to that--I’m no expert!)
+//
+//  To get around this, I defined mixins first--then declared classes
+//  second.  In effect this makes the CSS classes work as “aliases”
+//  to the mixins.
+//
+//  This allows us to:
+//
+//      *   use (for example) huge() inside style definitions
+//      *   use .huge in our markup
+//      *   and avoid duplicate code--both `huge()` and `.huge`
+//          share the same style definitions
+//
+//  --Zearin
+//  2011-Aug-31
+tiny()
+    font-size $em * 0.5625
+    line-height 1em * (($line*0.75) / ($font-size*0.8125))
+small()
+    /* 13px / 18px */
+    font-size   $em * 0.8125
+    line-height 1em * (($line*0.75) / ($font-size*0.5625))
+normal()
+    /* 16px / 24px */
+    font-size   $em
+    line-height 1em * 1.5
+large()
+    /* 26 / 36px */
+    font-size   1em * (26 / $font-size)
+    line-height 1em * (($line*1.5) / 26)
+huge()
+    /* 42px / 48px */
+    font-size   1em * (42 / $font-size)
+    line-height 1em * (($line*2) / 42)
+massive()
+    /* 68px / 72px */
+    font-size   1em * (68 / $font-size)
+    line-height 1em * (($line*3) / 68)
+gigantic()
+    /* 110px / 120px */
+    font-size   1em * (110 / $font-size)
+    line-height 1em * (($line*5) / 110)
+
+.tiny
+    tiny()
+.small
+    small()
+.normal, h3
+    normal()
+.large, h2
+    large()
+.huge, h1
+    huge()
+.massive
+    massive()
+.gigantic
+    gigantic()

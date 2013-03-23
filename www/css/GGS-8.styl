@@ -1,0 +1,88 @@
+@import 'GGS-config' unless $column is defined and $outer-margin is defined
+@import 'GGS-mixins'
+
+$grid-size=8
+
+/*!
+ *
+ *  Eight-column grid active
+ *  ----------------------------------------------------------------------
+ *  Margin   | #  1     2     3     4     5     6     7     8   |   Margin
+ *  5.55555% | %  12.5  25.0  37.5  50.0  62.5  75.0  87.5  100 | 5.55555%
+ *
+ *
+ */
+/*! @media screen and (min-width: 720px) */
+@media screen and (min-width: 45em)
+    debug('min-width: 45em/720px (8 columns)')
+
+    ggs-reset-baseline()
+
+    .twoway
+        .wrapper
+            float   left
+            ggs-width(4)
+
+    header
+        h1
+            span
+                display: inline
+                padding-left: 0.125em
+                &::before
+                    content: ": "
+
+    .github-ribbon, .download-ribbon
+        ribbon-position 'top-right'
+        padding 0.6em
+        transform rotate(45deg)
+        width 11em
+
+    .download-ribbon
+        ribbon-position 'top-left'
+        transform rotate(-45deg)
+
+/*! @media screen and (min-width: 888px) */
+@media screen and (min-width: 55.5em)
+    debug('min-width: 55.5em/888px (8 columns)')
+
+    ggs-zoom-baseline()
+
+
+/*! @media screen and (min-width 984px) */
+@media screen and (min-width: 61.5em)
+    debug('min-width: 61.5em/984px (8 columns)')
+
+    ggs-reset-baseline()
+
+    header
+    .content
+        margin 0 unit((3 * $column), '%')
+
+$grid-size=12
+/*! @media screen and (min-width: 1200px) */
+@media screen and (min-width: 75em)
+    debug('min-width: 75em/1200px (12 columns)')
+
+    ggs-zoom-baseline()
+
+/*! @media screen and (min-width: 1392px) */
+@media screen and (min-width: 87em)
+    debug('min-width: 87em/1392px (12 columns)')
+
+    ggs-reset-baseline()
+
+    header
+    .content
+        margin  0 $column*3 /*  11.111111111111% */
+        ggs-width(8)
+
+    header
+        h1
+        h2
+            text-align center
+
+/*! @media screen and (min-width: 1680px) */
+@media screen and (min-width: 105em)
+    debug('min-width: 105em/1680px (12 columns)')
+
+    ggs-zoom-baseline()

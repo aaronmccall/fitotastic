@@ -1,0 +1,33 @@
+@import 'GGS-config' unless $column is defined and $outer-margin is defined
+@import 'GGS-mixins'
+@import 'gh-ribbon-mixins'
+
+$grid-size=4
+header
+    padding-top 1.5em
+
+    h1
+        span
+            display block
+
+.github-ribbon, .download-ribbon
+    transform rotate(0deg)
+    top 0
+    right 0
+    width 50%
+    padding: 0.6em
+    box-sizing border-box
+    text-align center
+
+.download-ribbon
+    left 0
+
+/*! @media screen and (min-width: 640px) */
+@media screen and (min-width: 40em)
+    debug('min-width: 40em/640px (4 columns)')
+
+    ggs-zoom-baseline()
+
+    h1
+        huge()
+        margin  (1em * (48/42)) 0 (1em * (24/42))
