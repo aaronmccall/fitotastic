@@ -247,14 +247,8 @@ h4 {
   border-radius: 4px;
 }
 .more:target {
-  background: #f3fff3;
-}
-.more:target::before {
-  content: "\276f";
-  position: absolute;
-  font-size: 2em;
-  left: -0.25em;
-  top: 0.15em;
+  border-left: 4px solid #aaa;
+  background: #f0f0f0;
 }
 .twoway .more::before {
   top: 0.5em;
