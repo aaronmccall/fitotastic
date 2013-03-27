@@ -131,8 +131,7 @@
   height: 1.5em;
   margin-right: 0.15em;
 }
-#mffs_modal table tr:last-of-type .mffs_detail,
-#mffs_modal table tr:nth-last-of-type(-n+2) .mffs_detail {
+#mffs_modal table tr:nth-of-type(n+3) .mffs_detail {
   top: auto;
   bottom: 20px;
 }
@@ -141,8 +140,7 @@
   width: 140px;
   padding-left: 0;
 }
-#mffs_modal table tr td:last-child .mffs_detail,
-#mffs_modal table tr td:nth-last-child(n+4) .mffs_detail {
+#mffs_modal table tr td:nth-child(n+4) .mffs_detail {
   left: auto;
   right: 42px;
 }

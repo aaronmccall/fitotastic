@@ -34,14 +34,19 @@ var Totp = (function ($, _) {
     pub.init = function (app) {
         link.on('click', function (e) {
             e.preventDefault();
-            var $modal = app.getModal('top_proppers', 'Top Proppers', null, {
+            var $modal = app.getModal('top_proppers', 'Top Proppers', { height: 'auto' }, {
                     my: 'center top',
                     at: 'center top+' + 16,
                     of: 'body',
                     collision: 'none'
                 }),
-                $modal_content = $modal.find('.modal_contents');
-            $modal.show();
+                $modal_content = $modal.find('.modal_contents').css({
+                    height: '756px',
+                    overflow: 'scroll'
+                });
+            $modal.show(0, function () {
+                $('#mask').show().css('opacity', 0.5);
+            });
             $.get(url, function (list_html) {
                 var list = $(list_html),
                     $ul = $('<ul/>'),

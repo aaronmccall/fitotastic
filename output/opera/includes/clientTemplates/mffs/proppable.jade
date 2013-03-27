@@ -3,7 +3,7 @@ span.proppable(data-id=id)
     img(src=image_src)
   span.mffs_detail
     h4= title
-      span= age
+      span= age !== 'now' ? age + ' ago' : age 
     ul
       if details.length
         each item in details

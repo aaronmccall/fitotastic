@@ -200,11 +200,11 @@ $(document.body).append(div).on('click', function (e) {
 });
 
 menu.hide();
+Mffs.init(App);
+DPN.init(App);
 Totp.init(App);
 Conversationalist.init();
 HideNSFW.init(App);
-Mffs.init(App);
-DPN.init(App);
 
 $(document).ajaxSend(function(event, xhr, settings) {
     function sameOrigin(url) {

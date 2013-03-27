@@ -58,9 +58,16 @@ var Fitotastic = (function (Backbone) {
 
     Models.Person = Backbone.Model.extend({
         name: 'person',
-        fields: [ 'id', 'username', 'level', 'followed', 'info', 'pic' ],
+        fields: [ 'id', 'username', 'level', 'followed', 'info', 'pic', 'freshness' ],
         unique: ['id', 'username'],
-        collections: ['Activities', 'Notifications']
+        collections: ['Activities', 'Notifications'],
+        save: function () {
+            this.set({freshness: Date.now()}, {silent: true});
+            Backbone.Model.prototype.save.apply(this, arguments);
+        }
+    });
+    Collections.Friends = Backbone.Collection.extend({
+        model: Models.Person
     });
     Models.Activity = Backbone.Model.extend({
         name: 'activity',
@@ -129,9 +136,9 @@ var Fitotastic = (function (Backbone) {
                     return Date.parse(ts.children[0].data);
                 },
                 user: function (element, attributes) {
-                    var type = (attributes && attributes.type) ||
-                            this.options.parsers.type(element, attributes),
-                        user_match = (type||'').match(/^(\S+)/);
+                    var description = attributes.description ||
+                            this.options.parsers.description(element, attributes),
+                        user_match = (description || '').match(/^(\S+)/);
                     return (user_match !== null) ? user_match[1] : user_match;
                 }
             }

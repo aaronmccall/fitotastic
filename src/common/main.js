@@ -1,6 +1,3 @@
-// ==UserScript==
-// @require lib/underscore.1.4.3.min.js
-// ==/UserScript==
 kango.storage.clear();
 
 var App = {
@@ -37,6 +34,14 @@ var App = {
 		}
 
 		kango.storage.setItem(key, final_data);
+		kango.storage.setItem(key+'_freshness', Date.now());
 		return final_data;
 	}
 };
+
+
+kango.addMessageListener('App:fetch', function (msg) {
+	$.get(msg.data.url, function (data) {
+		msg.source.dispatchMessage(msg.data.channel, data);
+	});
+});

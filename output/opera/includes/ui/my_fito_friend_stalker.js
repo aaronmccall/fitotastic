@@ -14,7 +14,8 @@ var Mffs = (function ($, _) {
         following_url = 'https://www.fitocracy.com/get-user-friends/?user=aaronmccall&following=true&page=',
         stream_urlizer = _.template('https://www.fitocracy.com/activity_stream/<%= start %>/?user_id=<%= id %>'),
         pp_urlizer = _.template('https://s3.amazonaws.com/static.fitocracy.com/site_media/<%= pic %>'),
-        profile_urlizer = _.template('<a href="/profile/<%= username %>/"><%= at_name %></a>'),
+        profile_linker = _.template('<a href="/profile/<%= username %>/"><%= at_name %></a>'),
+        workout_urlizer = _.template('https://www.fitocracy.com/activity_stream/0/?user_id=<%= user_id %>&types=WORKOUT'),
         friend_page = 0,
         friends_per_friend_page = 5,
         stalker_page = 1,
@@ -48,25 +49,33 @@ var Mffs = (function ($, _) {
         return image;
     }
 
-    function get_activity_datetime(activity) {
-        var activity_timestamp = activity.find('.action_time').text().trim(),
-            activity_utime = Date.parse(activity_timestamp),
-            activity_hours, datetime;
+    function humanized_timesince(activity_utime) {
+        var datetime = null;
         if (activity_utime) {
             activity_hours = to_hours(Date.now(), activity_utime);
             if (activity_hours < 0.1) {
                 datetime = 'now';
             } else if (activity_hours < 1) {
-                datetime = Math.floor(activity_hours * 60) + ' min ago';
+                datetime = Math.floor(activity_hours * 60) + ' min';
             } else if (activity_hours < 24) {
-                datetime = Math.floor(activity_hours) + ' hrs ago';
+                datetime = Math.floor(activity_hours) + ' hrs';
             } else if (activity_hours < 48) {
-                datetime = 'a day ago';
+                datetime = 'a day';
+                if (activity_hours > 36) {
+                    datetime += ' and a half';
+                }
             } else {
-                datetime = Math.floor(activity_hours / 24) + ' days ago';
+                datetime = Math.floor(activity_hours / 24) + ' days';
             }
         }
         return datetime;
+    }
+
+    function get_activity_datetime(activity) {
+        var activity_timestamp = activity.find('.action_time').text().trim(),
+            activity_utime = Date.parse(activity_timestamp),
+            activity_hours;
+        return humanized_timesince(activity_utime);
     }
 
     function get_proppables(id, start, callback) {
@@ -148,8 +157,17 @@ var Mffs = (function ($, _) {
             },
             function (err) {
                 var proppable_container = friend.el.find('.proppables');
-                if (proppable_container.length) {
+                if (proppable_container.length && proppables.length) {
                     proppable_container.html(proppables.slice(0, 3).join("\n"));
+                } else {
+                    $.get(workout_urlizer({user_id: friend.id}), function (html) {
+                        var activity = $(html).find('.action_time:first'),
+                            last_ts = activity.length ? Date.parse(activity.text().trim()) : NaN;
+                        if (last_ts && (to_hours(Date.now(), last_ts) < 168)) {
+                            return proppable_container.text('You\'ve propped \'em all!');
+                        }
+                        proppable_container.text('No workouts' + (last_ts?' in the last ' + humanized_timesince(last_ts):'.'));
+                    });
                 }
             }
         );
@@ -161,7 +179,7 @@ var Mffs = (function ($, _) {
             friend.pic_url = pp_urlizer(friend);
             friend.throbber = App.throbber;
             friend.info = friend.info.replace(/@(\w+)/g, function (at_name, username) {
-                return profile_urlizer({username: username, at_name: at_name});
+                return profile_linker({username: username, at_name: at_name});
             }).replace(/\n{2,}/g, "\n").trim();
             friend.el = friend.el || $(templatizer.mffs.friend(friend));
             row.append(friend.el);

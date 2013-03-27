@@ -137,8 +137,7 @@
     margin-right: .15em
 
   table tr
-    &:last-of-type .mffs_detail,
-    &:nth-last-of-type(-n+2) .mffs_detail
+    &:nth-of-type(n+3) .mffs_detail
       top: auto
       bottom: 20px
 
@@ -147,7 +146,6 @@
       width: 140px
       padding-left: 0
 
-      &:last-child .mffs_detail,
-      &:nth-last-child(n+4) .mffs_detail
+      &:nth-child(n+4) .mffs_detail
         left: auto
         right: 42px
