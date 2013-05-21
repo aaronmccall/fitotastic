@@ -10,8 +10,7 @@ var Mffs = (function ($, _) {
             "id":602799
           }
     */
-    var follower_url = 'https://www.fitocracy.com/get-user-friends/?user=aaronmccall&followers=true&page=',
-        following_url = 'https://www.fitocracy.com/get-user-friends/?user=aaronmccall&following=true&page=',
+    var friend_url_tpl = _.template('https://www.fitocracy.com/get-user-friends/?user=<%= user %>&page=<%= page %>&followers=true'),
         stream_urlizer = _.template('https://www.fitocracy.com/activity_stream/<%= start %>/?user_id=<%= id %>'),
         pp_urlizer = _.template('https://s3.amazonaws.com/static.fitocracy.com/site_media/<%= pic %>'),
         profile_linker = _.template('<a href="/profile/<%= username %>/"><%= at_name %></a>'),
@@ -19,7 +18,6 @@ var Mffs = (function ($, _) {
         friend_page = 0,
         friends_per_friend_page = 5,
         stalker_page = 1,
-        friends_per_stalker_page = 20,
         stalker_pages = {},
         prop_activity_url = 'https://www.fitocracy.com/give_prop/',
         activity_comment_url = '/add_comment/',
@@ -37,7 +35,9 @@ var Mffs = (function ($, _) {
         },
         mffs_friends = [],
         proppables_xhr_queue = [],
-        App, $modal, $modal_contents, $list_table, $list_div, friend_count;
+        
+        App, $modal, $modal_contents, $list_table, $list_div, $friend_row,
+        friend_count, friend_url, friends_per_stalker_page, friends_per_stalker_row;
 
     function get_activity_image(activity) {
         var image = activity.find('.dramatic-image').attr('src', function () {
@@ -49,6 +49,19 @@ var Mffs = (function ($, _) {
         return image;
     }
 
+    function get_conversations() {
+        var convo_selector = [
+            '.stream-author[href$="' + App.me + '/"]',
+            '.comment_username_link[href$="' + App.me + '/"]'
+        ].join(','),
+        inner_get_convo = function ($html) {
+            var $items = $html.find(convo_selector).closest('.stream_item');
+            return console.log($items);
+        };
+        get_conversations = inner_get_convo;
+        return inner_get_convo.apply(this, arguments);
+    }
+    
     function humanized_timesince(activity_utime) {
         var datetime = null;
         if (activity_utime) {
@@ -89,24 +102,28 @@ var Mffs = (function ($, _) {
                                     var $this = $(this),
                                         act_age = activity_age($this),
                                         propped_by_me = !!$this.find('.proppers a[href="/profile/' + App.me + '/"]').length;
+                                    $this.data('activity_age', act_age);
                                     return propped_by_me || (act_age > (24*7));
                                 }),
                 activities_list = [];
+            get_conversations($(data));
             activities.each(function () {
                 var $this = $(this),
                     activity_type = $this.attr('data-ag-type'),
                     title = [(activity_type === 'workout') ? $this.find('.stream_total_points').text().trim() : $this.find('.dramatic-title:first').text().trim()],
-                    activity_detail = (activity_type === 'workout') ? (function (el) {
-                        var items = el.find('.action_detail > li'),
+                    activity_detail = (activity_type === 'workout') ? (function (workout) {
+                        var items = workout.find('.action_detail > li'),
                             output = [];
                         items.each(function () {
-                            var el = $(this),
-                                n = el.find('.action_prompt').text().replace(/:/g, '').trim(),
-                                pr = el.find('.pr');
+                            var activity = $(this),
+                                payload = {},
+                                pr = activity.find('.pr');
+                            payload.name = activity.find('.action_prompt').text().replace(/:/g, '').trim();
+                            payload.note = activity.find('.stream_note').text();
                             if (pr.length) {
-                                n += ' (PR)';
+                                payload.pr = pr.find('.set_user_original').text().trim();
                             }
-                            output.push(n);
+                            output.push(templatizer.mffs.activity(payload));
                         });
                         return output;
                     })($this) : [$this.find('.dramatic-description').text().trim()],
@@ -125,6 +142,7 @@ var Mffs = (function ($, _) {
                 activities_list.push(templatizer.mffs.proppable({
                     title: title[0],
                     age: get_activity_datetime($this),
+                    activity_age: $this.data('activity_age'),
                     id: this.id.split('_').pop(),
                     href: url || '#',
                     image_src: image_src,
@@ -142,7 +160,7 @@ var Mffs = (function ($, _) {
             abort_proppable = false;
         App.async.whilst(
             function () {
-                return (!abort_proppable) && (proppables && proppables.length < 3) && (stream_start < 75);
+                return (!abort_proppable) && (proppables && proppables.length < 6) && (stream_start < 75);
             },
             function (cb) {
                 get_proppables(friend.id, stream_start, function (err, proppables_list) {
@@ -158,6 +176,13 @@ var Mffs = (function ($, _) {
             function (err) {
                 var proppable_container = friend.el.find('.proppables');
                 if (proppable_container.length && proppables.length) {
+                    proppables.sort(function (a, b) {
+                        var b_age_match = b.match(/data-activity_age='([^']+)/),
+                            a_age_match = a.match(/data-activity_age='([^']+)/),
+                            b_age = b_age_match ? parseFloat(b_age_match[1]) : NaN,
+                            a_age = a_age_match ? parseFloat(a_age_match[1]) : NaN;
+                        return b_age - a_age;
+                    });
                     proppable_container.html(proppables.slice(0, 3).join("\n"));
                 } else {
                     $.get(workout_urlizer({user_id: friend.id}), function (html) {
@@ -166,7 +191,7 @@ var Mffs = (function ($, _) {
                         if (last_ts && (to_hours(Date.now(), last_ts) < 168)) {
                             return proppable_container.text('You\'ve propped \'em all!');
                         }
-                        proppable_container.text('No workouts' + (last_ts?' in the last ' + humanized_timesince(last_ts):'.'));
+                        proppable_container.html('<span class="no-work">No workouts' + (last_ts?' in the last ' + humanized_timesince(last_ts):'.</span>'));
                     });
                 }
             }
@@ -174,8 +199,8 @@ var Mffs = (function ($, _) {
     }
 
     function process_friends(friends, cb, opts) {
-        var row = $('<tr>');
         _.each(friends, function (friend) {
+            var row = $friend_row || ($friend_row = $('<tr>'));
             friend.pic_url = pp_urlizer(friend);
             friend.throbber = App.throbber;
             friend.info = friend.info.replace(/@(\w+)/g, function (at_name, username) {
@@ -185,14 +210,17 @@ var Mffs = (function ($, _) {
             row.append(friend.el);
             add_proppables_to_friend(friend);
             friend_cells++;
+            if (row.find('td').length === friends_per_stalker_row) {
+                $list_table.append(row);
+                $friend_row = null;
+            }
         });
-        $list_table.append(row);
         friend_page++;
         cb();
     }
 
     function load_friends(page, cb, opts) {
-        var start_friend = (page * friends_per_friend_page),
+        var start_friend = Math.floor(page * friends_per_friend_page),
             end_friend = start_friend + friends_per_friend_page;
         if (mffs_friends.length > end_friend) {
             process_friends(mffs_friends.slice(start_friend, end_friend), cb);
@@ -214,7 +242,7 @@ var Mffs = (function ($, _) {
             //         process_friends(friends.slice(start_friend, end_friend), cb);
             //     }
             // });
-            $.get(follower_url + friend_page, function (friends) {
+            $.get(friend_url(friend_page), function (friends) {
                 if (_.isArray(friends)) {
                     mffs_friends = mffs_friends.concat(friends);
                     if (friends.length < 5) friend_count = mffs_friends.length;
@@ -230,7 +258,7 @@ var Mffs = (function ($, _) {
     }
 
     function create_stalker_page(page) {
-        var page_ratio = (friends_per_stalker_page / friends_per_friend_page),
+        var page_ratio = Math.floor(friends_per_stalker_page / friends_per_friend_page),
             $mffs_pages = $modal.find('.mffs_pages'),
             $prev_page = $mffs_pages.find('.goto_' + (page-1));
         // How many friends have we rendered for the UI?
@@ -251,7 +279,7 @@ var Mffs = (function ($, _) {
         }
         App.async.whilst(
             function () {
-                return friend_cells < 20 && (!friend_count || mffs_friends.length < friend_count);
+                return friend_cells < friends_per_stalker_page && (!friend_count || mffs_friends.length < friend_count);
             },
 
             function (cb) {
@@ -260,8 +288,11 @@ var Mffs = (function ($, _) {
 
             function (err) {
                 $modal_contents.find('.throbber:last').remove();
-                $('.mffs_next')[($list_table.find('td').length < 20)?'hide':'show']();
+                console.log('friends_per_stalker_page: ' + friends_per_stalker_page);
+                console.log('cells in table: ' + $list_table.find('td').length);
+                $('.mffs_next')[($list_table.find('td').length < friends_per_stalker_page)?'hide':'show']();
                 $('.mffs_prev')[(stalker_page===1)?'hide':'show']();
+                $friend_row = null;
             }
         );
     }
@@ -304,21 +335,36 @@ var Mffs = (function ($, _) {
     return {
         init: function (app) {
             var link = $('<a id="mffs" href="#">Friend Stalker</a>');
+            friend_url = (function (username) {
+                var payload = { user: username };
+                return function (page) {
+                    payload.page = page || 0;
+                    return friend_url_tpl(payload);
+                };
+            })(app.me);
             App = app;
             link.click(function (e) {
                 e.preventDefault();
                 var $header = $('#wrapper').find('header'),
-                    mffs_style = $('#mffs_style');
+                    mffs_style = $('#mffs_style'),
+                    window_height = $(window).height(),
+                    window_width = $(window).width(),
+                    stalker_rows = Math.floor((window_height-80)/187);
                 $list_div = $list_div || $('<div class="friend-list"/>');
                 $list_table = $list_table || $('<table style="border:none" />');
-                $modal = app.getModal('mffs_modal', 'My Friends', { height: 'auto' }, {
+                $modal = app.getModal('mffs_modal', 'My Friends', { height: 'auto', width: (window_width-32) + 'px' }, {
                     my: 'center top',
                     at: 'center top+' + 16,
                     of: 'body',
                     collision: 'none'
                 });
-                $modal_contents = $modal.find('.modal_contents')
-                                        .css({ 'height': '756px', overflow: 'scroll' });
+                friends_per_stalker_row = Math.floor((window_width-32)/140);
+                console.log('stalker_rows: ' + stalker_rows);
+                friends_per_stalker_page = (stalker_rows*friends_per_stalker_row);
+                $modal_contents = $modal.find('.modal_contents').css({
+                    'height': (window_height - 80) + 'px',
+                    'overflow': 'scroll'
+                });
                 if (!$modal_contents.find('.friend-list').length) {
                     $list_div.append($list_table);
                     $modal_contents.prepend($list_div);
@@ -384,7 +430,7 @@ var Mffs = (function ($, _) {
                         $this.prop('disabled', true).text('Saving...');
                     }).on('click', '.prop_all', function (e) {
                         e.preventDefault();
-                        $('.proppable a', $list_table).not('.propped').each(function () { this.click() });
+                        $('.proppable a', $list_table).not('.propped').each(function () { this.click(); });
                     });
                     create_stalker_page(stalker_page);
                 }
@@ -404,11 +450,11 @@ var Mffs = (function ($, _) {
                 });
             });
             // Refresh proppables on stalker pages when they are reloaded.
-            app.subscribe('reload:stalker_page', function (page) {
-                var start = (page - 1) * friends_per_stalker_page,
-                    end = page * friends_per_stalker_page,
-                    friends = mffs_friends.slice(start, end);
-            });
+            // app.subscribe('reload:stalker_page', function (page) {
+            //     var start = (page - 1) * friends_per_stalker_page,
+            //         end = page * friends_per_stalker_page,
+            //         friends = mffs_friends.slice(start, end);
+            // });
         }
     };
 })(window.jQuery, window._);
