@@ -23,7 +23,7 @@
     "16": "icons/button.png"
   }, 
   "homepage_url": "https://github.com/aaronmccall/fitotastic", 
-  "version": "0.1", 
+  "version": "0.1.1", 
   "background": {
     "page": "background.html"
   }, 

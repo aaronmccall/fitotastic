@@ -19,6 +19,7 @@ var App = {
 			return final_data;
 		}
 	},
+
 	appendUnique: function (key, new_data) {
 		var old_data = kango.storage.getItem(key),
 			final_data = new_data,
@@ -36,12 +37,70 @@ var App = {
 		kango.storage.setItem(key, final_data);
 		kango.storage.setItem(key+'_freshness', Date.now());
 		return final_data;
+	},
+
+	getCookie: function (name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    },
+
+	getPerformanceData: function (id_list, callback) {
+		var csv_data = [];
+		async.forEach(
+			id_list,
+			function (id, cb) {
+				$.get(
+					'https://www.fitocracy.com/_get_activity_history_json/?activity-id=' + id,
+					function (data) {
+						csv_data.push(generate_csv(data));
+						cb();
+					});
+			},
+			function (err) {
+				callback(csv_data);
+			}
+		);
+	},
+
+	getUserData: function (username, callback) {
+		$.get('https://www.fitocracy.com/get_user_json_from_username/' + username + '/',
+			function (data) {
+				callback(data);
+			});
+	},
+
+	getMyData: function (callback) {
+		if (!this.me) {
+			this.getUserData(this.getCookie('km_ai'), function (data) {
+				this.me = data;
+				callback(data);
+			});
+		} else {
+			callback(this.me);
+		}
 	}
 };
 
 
-kango.addMessageListener('App:fetch', function (msg) {
-	$.get(msg.data.url, function (data) {
+kango.addMessageListener('App:getPerformanceData', function (msg) {
+	App.getPerformanceData(msg.data.ids, function (data) {
 		msg.source.dispatchMessage(msg.data.channel, data);
+	});
+});
+
+kango.addMessageListener('App:getUserData', function (msg) {
+	App.getUserData(msg.data.username, function (data) {
+		msg.source.dispatchMessage('user_data', data);
 	});
 });

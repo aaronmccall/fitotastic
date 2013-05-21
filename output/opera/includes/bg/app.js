@@ -33,7 +33,7 @@ var Fitotastic = (function (Backbone) {
         select: function () {
             return SoupSelect.select.apply(null, arguments);
         },
-        
+
         parseModel: function (model_container, index, element) {
             var model_attributes = {};
             _.each(this.options.parsers, function (parser, attribute) {
@@ -43,7 +43,7 @@ var Fitotastic = (function (Backbone) {
             }, this);
             model_container.push(model_attributes);
         },
-        
+
         parseHtml: function (html) {
             var model_container = [],
                 iterator = _.bind(this.parseModel, this, model_container);

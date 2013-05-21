@@ -11,7 +11,7 @@
     "main.js"
   ], 
   "homepage_url": "https://github.com/aaronmccall/fitotastic", 
-  "version": "0.1", 
+  "version": "0.1.1", 
   "id": "http://kangoextensions.com/extensions/fitotastic/", 
   "name": "fitotastic"
 }

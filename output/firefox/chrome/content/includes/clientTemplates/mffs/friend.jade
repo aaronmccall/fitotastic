@@ -1,14 +1,18 @@
 td(id="user_"+id)
-  .mffs_friend(data-id=id)
+  .mffs_friend(data-id=id, class=(followed ? "followed" : ""))
     img.friend_pp(src=pic_url)
     span.mffs_user= username
+    span.mffs_level= level
 
     .mffs_detail
       ul
         li
           a(href="/profile/" + username + '/')
             strong= username
-            em= ' (' + level + ')'
+            em 
+              | (#{level})
+              if followed
+                | &nbsp;&#x2714;
         li.info!= info
       textarea(maxlength=500, cols=27, rows=5)
       button.pill-btn.munsell-blue-btn Post

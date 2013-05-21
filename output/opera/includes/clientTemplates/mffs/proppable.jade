@@ -1,4 +1,4 @@
-span.proppable(data-id=id)
+span.proppable(data-id=id, data-activity_age=activity_age)
   a(title=title, href=href, data-activity-id=id)
     img(src=image_src)
   span.mffs_detail
@@ -7,6 +7,6 @@ span.proppable(data-id=id)
     ul
       if details.length
         each item in details
-          li= item
+          li!= item
     textarea(maxlength=500, cols=27, rows=5)
     button.pill-btn.munsell-blue-btn Comment
