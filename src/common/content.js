@@ -89,6 +89,8 @@ var $content = $('#content'),
     },
     indicator_cache = {};
 
+App.me = App.getCookie('km_ai');
+
 // Add PubSub capability to App
 (function(targetObj, defContext) {
     var topics = {},
@@ -228,4 +230,15 @@ $(document).ajaxSend(function(event, xhr, settings) {
     }
 });
 
-App.me = App.getCookie('km_ai');
+/*
+(function () {
+    var link = $('<a>').text('Get User Data');
+    link.click(function () {
+        kango.dispatchMessage('App:getUserData', {username: App.getCookie('km_ai')});
+    });
+    kango.addMessageListener('user_data', function (msg) {
+        console.dir(msg);
+    });
+    App.addItem(link);
+})();
+*/
