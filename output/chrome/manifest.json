@@ -2,7 +2,7 @@
   "web_accessible_resources": [
     "resources/*"
   ], 
-  "description": "A set of niceties for Fitocracy", 
+  "description": "A set of helpers and tools for Fitocracy that assist with connection and communication.", 
   "content_scripts": [
     {
       "matches": [
@@ -22,8 +22,8 @@
     "48": "icons/icon48.png", 
     "16": "icons/button.png"
   }, 
-  "homepage_url": "https://github.com/aaronmccall/fitotastic", 
-  "version": "0.1.1", 
+  "homepage_url": "https://fitotastic.amac.me", 
+  "version": "0.1.2", 
   "background": {
     "page": "background.html"
   }, 
@@ -37,5 +37,5 @@
     "notifications", 
     "cookies"
   ], 
-  "name": "fitotastic"
+  "name": "Fitotastic"
 }

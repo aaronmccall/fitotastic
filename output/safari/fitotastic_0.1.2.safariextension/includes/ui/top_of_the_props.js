@@ -5,7 +5,7 @@ var Totp = (function ($, _) {
         pub = {},
         names = [],
         template = "",
-        url = 'https://www.fitocracy.com/notifications/?start=0&end=1000000',
+        url = 'https://www.fitocracy.com/notifications/?start=0&end=10000',
         key, count, list, renderer;
 
     // Set up the template and its renderer

@@ -35,10 +35,23 @@ var Mffs = (function ($, _) {
         },
         mffs_friends = [],
         proppables_xhr_queue = [],
-        
         App, $modal, $modal_contents, $list_table, $list_div, $friend_row,
-        friend_count, friend_url, friends_per_stalker_page, friends_per_stalker_row;
+        friend_count, friend_url, friends_per_stalker_page, friends_per_stalker_row, get_last_conversation;
 
+    function date_prettifier(_, match) {
+        var output = '';
+        if (match) {
+            var now = new Date(),
+                date = Date.create(match);
+            if (now.daysSince(date) < 7) {
+                if (date.isLastWeek()) output += 'last ';
+                output += date.format("{Weekday}");
+            } else {
+                output += date.format();
+            }
+        }
+        return output;
+    }
     function get_activity_image(activity) {
         var image = activity.find('.dramatic-image').attr('src', function () {
             var $this = $(this);
@@ -49,19 +62,6 @@ var Mffs = (function ($, _) {
         return image;
     }
 
-    function get_conversations() {
-        var convo_selector = [
-            '.stream-author[href$="' + App.me + '/"]',
-            '.comment_username_link[href$="' + App.me + '/"]'
-        ].join(','),
-        inner_get_convo = function ($html) {
-            var $items = $html.find(convo_selector).closest('.stream_item');
-            return console.log($items);
-        };
-        get_conversations = inner_get_convo;
-        return inner_get_convo.apply(this, arguments);
-    }
-    
     function humanized_timesince(activity_utime) {
         var datetime = null;
         if (activity_utime) {
@@ -105,8 +105,14 @@ var Mffs = (function ($, _) {
                                     $this.data('activity_age', act_age);
                                     return propped_by_me || (act_age > (24*7));
                                 }),
-                activities_list = [];
-            get_conversations($(data));
+                activities_list = [],
+                friend = _(mffs_friends).find(function (friend) { return id === friend.id; }),
+                last_convo = !friend.last_convo ? get_last_conversation($(data), friend) : {};
+            // If friend doesn't have last_convo yet and we've retrieved one, add it to friend.
+            if (!friend.last_convo && !_.isEmpty(last_convo)) {
+                friend.last_convo = last_convo;
+            }
+
             activities.each(function () {
                 var $this = $(this),
                     activity_type = $this.attr('data-ag-type'),
@@ -192,6 +198,11 @@ var Mffs = (function ($, _) {
                             return proppable_container.text('You\'ve propped \'em all!');
                         }
                         proppable_container.html('<span class="no-work">No workouts' + (last_ts?' in the last ' + humanized_timesince(last_ts):'.</span>'));
+                        if (friend.last_convo) {
+                            proppable_container.append(templatizer.mffs.convo(friend.last_convo));
+                        } else {
+                            /*console.log('no last_convo for ' + friend.username);*/
+                        }
                     });
                 }
             }
@@ -288,8 +299,8 @@ var Mffs = (function ($, _) {
 
             function (err) {
                 $modal_contents.find('.throbber:last').remove();
-                console.log('friends_per_stalker_page: ' + friends_per_stalker_page);
-                console.log('cells in table: ' + $list_table.find('td').length);
+                /*console.log('friends_per_stalker_page: ' + friends_per_stalker_page);*/
+                /*console.log('cells in table: ' + $list_table.find('td').length);*/
                 $('.mffs_next')[($list_table.find('td').length < friends_per_stalker_page)?'hide':'show']();
                 $('.mffs_prev')[(stalker_page===1)?'hide':'show']();
                 $friend_row = null;
@@ -359,7 +370,7 @@ var Mffs = (function ($, _) {
                     collision: 'none'
                 });
                 friends_per_stalker_row = Math.floor((window_width-32)/140);
-                console.log('stalker_rows: ' + stalker_rows);
+                /*console.log('stalker_rows: ' + stalker_rows);*/
                 friends_per_stalker_page = (stalker_rows*friends_per_stalker_row);
                 $modal_contents = $modal.find('.modal_contents').css({
                     'height': (window_height - 80) + 'px',
@@ -455,6 +466,42 @@ var Mffs = (function ($, _) {
             //         end = page * friends_per_stalker_page,
             //         friends = mffs_friends.slice(start, end);
             // });
+            get_last_conversation = (function () {
+                var author_getter = function (author) {
+                        return '.stream-author[href$="' + author + '/"]:first';
+                    },
+                    commenter_getter = function (commenter) {
+                        return '.comment_username_link[href$="' + commenter + '/"]:first';
+                    },
+                    me_author = author_getter(App.me),
+                    me_commenter = commenter_getter(App.me),
+                    convo_selector = [
+                        me_author,
+                        me_commenter
+                    ].join(',');
+
+                return function ($html, friend) {
+                    var $this = $html.find(convo_selector).first();
+                    if (!$this.length) return;
+                    var is_comment = $this.is('.comment_username_link'),
+                        $item = $this.closest('.stream_item'),
+                        headline = $('.stream-item-headline', $item).text().replace(/\s{2,}/g, ' ')
+                                    .trim().replace(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-\d{2}:\d{2})/, date_prettifier),
+                        body = $('.stream-status', $item).text().replace(/\s{2,}/g, ' ').trim(),
+                        $comment = (is_comment ? $this : $(commenter_getter(friend.username), $item))
+                                    .closest('.comment-content').text().replace(/\s{2,}/g, ' ').trim(),
+                        reply;
+                    if  (is_comment) {
+                        headline = headline.replace(App.me, 'you');
+                        reply = $comment.replace(App.me, 'and you replied: ');
+                    } else {
+                        headline = headline.replace(App.me, 'You');
+                        reply = $comment.replace(friend.username, 'and they replied: ');
+                    }
+                    return {headline: headline, body: body, reply: reply};
+                };
+
+            })();
         }
     };
 })(window.jQuery, window._);

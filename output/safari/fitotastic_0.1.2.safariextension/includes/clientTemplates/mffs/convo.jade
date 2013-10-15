@@ -1,0 +1,10 @@
+span.convo
+  .mffs_detail
+    h4 #{headline}:
+    p #{body}
+    if reply
+      - var reply = reply.split(':');
+      p 
+        em #{reply[0]}
+        br
+        | #{reply[1]}

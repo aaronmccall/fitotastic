@@ -31,8 +31,8 @@
 	
 
     <box style="display:none;">
-		<html:canvas id="fitotastic_kango-ui-canvas" width="19" height="19"/>
-        <iframe id="fitotastic_kango-background-script-host" type="content" hidden="false" height="0"/>
+		<html:canvas id="Fitotastic_kango-ui-canvas" width="19" height="19"/>
+        <iframe id="Fitotastic_kango-background-script-host" type="content" hidden="false" height="0"/>
 	</box>
 
     <!-- Modules -->

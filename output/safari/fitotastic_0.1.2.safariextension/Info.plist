@@ -5,15 +5,15 @@
 	<key>Author</key>
 	<string>Aaron McCall</string>
 	<key>CFBundleDisplayName</key>
-	<string>fitotastic</string>
+	<string>Fitotastic</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.kangoextensions.fitotastic</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.1</string>
+	<string>0.1.2</string>
 	<key>CFBundleVersion</key>
-	<string>0.1.1</string>
+	<string>0.1.2</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Database Quota</key>
@@ -50,7 +50,7 @@
 		</array>
 	</dict>
 	<key>Description</key>
-	<string>A set of niceties for Fitocracy</string>
+	<string>A set of helpers and tools for Fitocracy that assist with connection and communication.</string>
 	<key>ExtensionInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>Permissions</key>
@@ -66,6 +66,6 @@
 	<key>Update Manifest URL</key>
 	<string></string>
 	<key>Website</key>
-	<string>https://github.com/aaronmccall/fitotastic</string>
+	<string>https://fitotastic.amac.me</string>
 </dict>
 </plist>
