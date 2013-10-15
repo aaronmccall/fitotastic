@@ -6,6 +6,7 @@
 // @require lib/jquery-ui.1.9.2.min.js
 // @require lib/underscore.1.4.3.min.js
 // @require lib/async.js
+// @require lib/sugar-1.3.9-custom.development.js
 // @require includes/ui/templates.js
 // @require includes/ui/images.js
 // @require includes/ui/conversationalist.js
@@ -19,7 +20,7 @@ var $content = $('#content'),
     content_right = ($content.offset().left + $content.width()),
     right_margin = $(document).width() - content_right,
     div = $('<div id="fitotastic_container"/>'),
-    btn = $('<button type="button" class="pill-btn red-btn" id="fitotastic">Fitotastic</button>'),
+    btn = $('<a id="fitotastic">F!</a>'),
     menu = $('<ul id="fitotastic_menu" class="vert-nav" />'),
     App = {
 
@@ -89,7 +90,11 @@ var $content = $('#content'),
     },
     indicator_cache = {};
 
-App.me = App.getCookie('km_ai');
+App.me = App.getCookie('km_ai') || App.getCookie('km_ni');
+if (!App.me) $.get('/profile/', function (html) {
+    var match = html.match(/(\w+)'s Profile/);
+    if (match && match[1]) App.me = match[1];
+});
 
 // Add PubSub capability to App
 (function(targetObj, defContext) {
@@ -137,28 +142,25 @@ App.me = App.getCookie('km_ai');
     };
 
 })(App);
-
+var fitotastic_style = $('#fitotastic_style');
+if (!fitotastic_style.length) {
+    fitotastic_style = $('<style id="fitotastic_style" />');
+    fitotastic_style.text($(templatizer.style()).text());
+    $(document.body).append(fitotastic_style);
+}
 div.css({
-    position: "fixed",
-    top: "15px",
-    left: (content_right + 5) + "px",
-    width: (right_margin - 5) + "px",
-    "z-index": 50
+    // right: (content_right - 5) + "px",
+    width: ((right_margin - 5) > 150 ? (right_margin - 5) : 150) + "px"
 });
-menu.css({
-    padding: "20px",
-    background: "#FFF",
-    "-webkit-box-shadow":  '2px 3px 3px 1px #999',
-    "box-shadow":  '2px 3px 3px 1px #999',
-    "-webkit-border-radius": '4px',
-    "border-radius": '4px'
-});
+
 btn.click(function (e) {
     e.preventDefault();
     menu[(menu.is(':visible')) ? 'hide' : 'show']();
 });
-div.append($('<p />').append(btn));
+
+div.append(btn);
 div.append(menu);
+
 $(document.body).append(div).on('click', function (e) {
     if (((e.srcElement !== btn[0] || e.target !== btn[0]) && ($(e.srcElement).closest(menu).length === 0))) {
         menu.hide();

@@ -1,13 +1,13 @@
 {
+  "name": "Fitotastic",
+  "description": "A set of helpers and tools for Fitocracy that assist with connection and communication.",
+  "creator": "Aaron McCall",
   "content_scripts": [
     "content.js"
-  ], 
-  "description": "A set of niceties for Fitocracy", 
-  "creator": "Aaron McCall", 
+  ],
   "background_scripts": [
     "lib/underscore.1.4.3.min.js", "lib/jquery.1.8.3.min.js", "main.js"
-  ], 
-  "homepage_url": "https://github.com/aaronmccall/fitotastic", 
-  "version": "0.1.1", 
-  "name": "fitotastic"
+  ],
+  "homepage_url": "https://fitotastic.amac.me",
+  "version": "0.1.2"
 }
