@@ -18,9 +18,6 @@
 #mffs_modal .mffs_friend:hover .mffs_detail {
   display: block;
 }
-#mffs_modal .mffs_friend.followed .mffs_user:after {
-  content: "\00a0\2714";
-}
 #mffs_modal .mffs_user,
 #mffs_modal .mffs_level {
   position: absolute;
