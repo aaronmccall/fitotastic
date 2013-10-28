@@ -7,6 +7,7 @@
 // @require res/underscore.1.4.3.min.js
 // @require res/async.js
 // @require res/sugar-1.3.9-custom.development.js
+// @require includes/ui/main.js
 // @require includes/ui/templates.js
 // @require includes/ui/images.js
 // @require includes/ui/conversationalist.js
