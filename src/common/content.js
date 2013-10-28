@@ -7,6 +7,7 @@
 // @require res/underscore.1.4.3.min.js
 // @require res/async.js
 // @require res/sugar-1.3.9-custom.development.js
+// @require includes/ui/main.js
 // @require includes/ui/templates.js
 // @require includes/ui/images.js
 // @require includes/ui/conversationalist.js
@@ -14,6 +15,7 @@
 // @require includes/ui/nsfw_hider.js
 // @require includes/ui/my_fito_friend_stalker.js
 // @require includes/ui/dissaprop.js
+// @require includes/ui/notice_me.js
 // ==/UserScript==
 
 var $content = $('#content'),
@@ -26,7 +28,28 @@ var $content = $('#content'),
 
         modals: {},
 
+        UI: {},
+
         async: async,
+
+        backend: {
+            send: function (method, data, callback) {
+                var channel = _.uniqueId(method + '_'),
+                    messenger = function (msg) {
+                        callback(msg.data);
+                        kango.removeMessageListener(channel, messenger);
+                    };
+                kango.addMessageListener(channel, messenger);
+                kango.dispatchMessage('RPC', {channel: channel, data: data, method: method});
+
+            },
+
+            subscribe: function (name, callback) {
+                kango.addMessageListener(name, function (msg) {
+                    callback(msg.data);
+                });
+            }
+        },
 
         giveProp: function (id, cb) {
             $.post('https://www.fitocracy.com/give_prop/', {id: id}, function (data) {
@@ -43,7 +66,7 @@ var $content = $('#content'),
         addItem: function (menu_item) {
             var li = $('<li/>');
             li.append(menu_item);
-            menu.append(li);
+            App.UI.menu.append(li);
         },
 
         getModal: function (id, h2_text, css_opts, position_opts) {
@@ -89,12 +112,6 @@ var $content = $('#content'),
         throbber: '<img class="throbber" src="https://s3.amazonaws.com/static.fitocracy.com/site_media/images/ajax-loader.gif" />'
     },
     indicator_cache = {};
-
-App.me = App.getCookie('km_ai') || App.getCookie('km_ni');
-if (!App.me) $.get('/profile/', function (html) {
-    var match = html.match(/(\w+)'s Profile/);
-    if (match && match[1]) App.me = match[1];
-});
 
 // Add PubSub capability to App
 (function(targetObj, defContext) {
@@ -142,105 +159,63 @@ if (!App.me) $.get('/profile/', function (html) {
     };
 
 })(App);
-var fitotastic_style = $('#fitotastic_style');
-if (!fitotastic_style.length) {
-    fitotastic_style = $('<style id="fitotastic_style" />');
-    fitotastic_style.text($(templatizer.style()).text());
-    $(document.body).append(fitotastic_style);
+
+// Register UI modules to initialize
+App.UI.modules = [ Mffs, DPN, Totp, Conversationalist, HideNSFW, NoticeMe ];
+
+// Define who the current user is
+App.me = App.getCookie('km_ai') || App.getCookie('km_ni');
+if (!App.me) {
+    App.ready = false;
+    $.get('/profile/', function (html) {
+        var match = html.match(/(\w+)'s Profile/);
+        if (match && match[1]) App.me = match[1];
+        App.ready = true;
+        App.publish('app:ready:change', true);
+    });
+} else {
+    App.ready = true;
 }
-div.css({
-    // right: (content_right - 5) + "px",
-    width: ((right_margin - 5) > 150 ? (right_margin - 5) : 150) + "px"
-});
 
-btn.click(function (e) {
-    e.preventDefault();
-    menu[(menu.is(':visible')) ? 'hide' : 'show']();
-});
-
-div.append(btn);
-div.append(menu);
-
-$(document.body).append(div).on('click', function (e) {
-    if (((e.srcElement !== btn[0] || e.target !== btn[0]) && ($(e.srcElement).closest(menu).length === 0))) {
-        menu.hide();
-    }
-}).on('keydown', function (e) {
-    // Escape key to hide modals and fitotastic menu
-    if ((e.keyCode && e.keyCode === 27)) {
-        $('#mask, .modal_window').hide();
-        menu.hide();
-    }
-    // Begin charometer functionality
-}).on('focus', '[maxlength]', function (e) {
-    var $this = $(this),
-        css_props = $.extend({
-            position:'relative',
-            left:'2px',
-            color:'#aaa'
-        }, (function (id) {
-                if (id === 'status_text') {
-                    return { left: '4px' };
-                } else if (id === 'info') {
-                    return { top: '-4px' };
-                } else {
-                    return { top: '-28px' };
-                }
-            })(this.id)
-        ),
-        $indicator;
-    if (!$this.data('char_remaining_indicator')) {
-        $indicator = indicator_cache[this.id] || (indicator_cache[this.id] = $('<span class="charometer" />').css(css_props)).insertAfter($this);
-        $this.keyup(function () {
-            $indicator.text($this.prop('maxlength')-$this.val().length);
-        });
-        $this.data('char_remaining_indicator', true);
-    }
-}).on('click', '.submitstatus', function () {
-    $('#add_status').find('.charometer').html('');
-}).on('click', '.submitcomment', function () {
-    $(this).prev('.charometer').html('');
-    // End charometer functionality
-});
-
-menu.hide();
-Mffs.init(App);
-DPN.init(App);
-Totp.init(App);
-Conversationalist.init();
-HideNSFW.init(App);
-
-$(document).ajaxSend(function(event, xhr, settings) {
-    function sameOrigin(url) {
-        // url could be relative or scheme relative or absolute
-        var host = document.location.host; // host + port
-        var protocol = document.location.protocol;
-        var sr_origin = '//' + host;
-        var origin = protocol + sr_origin;
-        // Allow absolute or scheme relative URLs to same origin
-        return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
-            (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
-            // or any other URL that isn't scheme relative or absolute i.e relative.
-            !(/^(\/\/|http:|https:).*/.test(url));
-    }
-    function safeMethod(method) {
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-    }
-
-    if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
-        xhr.setRequestHeader("X-CSRFToken", App.getCookie('csrftoken'));
-    }
-});
-
-/*
-(function () {
-    var link = $('<a>').text('Get User Data');
-    link.click(function () {
-        kango.dispatchMessage('App:getUserData', {username: App.getCookie('km_ai')});
+App.init = function () {
+    FitotasticUI.init(App);
+    App.UI.modules.forEach(function (module) {
+        module.init.call(module, App);
     });
-    kango.addMessageListener('user_data', function (msg) {
-        console.dir(msg);
+};
+
+if (App.ready) {
+    App.init();
+} else {
+    App.subscribe('app:ready:change', function (isReady) {
+        if (isReady === true) App.init();
     });
-    App.addItem(link);
-})();
-*/
+}
+
+kango.addMessageListener('RPC_Error', function (msg) {
+    console.error(msg.data.error);
+});
+
+function friendUpdater (friends) {
+    if (_.isArray(friends)) {
+        App.friends = friends;
+    }
+}
+
+App.backend.send('getFriends', App.me, friendUpdater);
+
+App.backend.subscribe('app:friends:change', friendUpdater);
+
+kango.invokeAsync('kango.storage.getItem', 'appOptions', function (options) {
+    App.options = options;
+});
+
+// (function () {
+//     var link = $('<a>').text('Get User Data');
+//     link.click(function () {
+//         App.backend.send('getUserData', App.me, function (msg) {
+//             console.dir(msg);
+//         });
+//     });
+//     App.addItem(link);
+// })();

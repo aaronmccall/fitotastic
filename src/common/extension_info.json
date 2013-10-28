@@ -6,8 +6,9 @@
     "content.js"
   ],
   "background_scripts": [
-    "res/underscore.1.4.3.min.js", "res/jquery.1.8.3.min.js", "main.js"
+    "res/underscore.1.4.3.min.js", "res/jquery.1.8.3.min.js", "res/async.js", "res/db.js", "main.js"
   ],
   "homepage_url": "https://fitotastic.amac.me",
-  "version": "0.1.2"
+  "options_page": "options.html",
+  "version": "0.1.3"
 }
