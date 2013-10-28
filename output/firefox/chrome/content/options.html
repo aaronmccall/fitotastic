@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fitotastic Options</title>
+    <style>
+        body {
+            background: #2e393d;
+            color: #fff;
+            font-family: Helvetica, Arial, Verdana, sans-serif;
+            margin: auto 10em;
+        }
+        input[type="radio"], input[type="checkbox"] {
+            visibility: hidden;
+            width: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+        input + label, button {
+            background: #449;
+            border-radius: 8px;
+            padding: .25em;
+            color: #fff;
+            font-size: 1rem;
+            border: none;
+        }
+        input:checked + label {
+            background: #363;
+        }
+        input:checked + label:after, .save_success:after {
+            content: " \2714";
+        }
+    </style>
+    <script type="text/javascript" src="kango-ui/kango_api.js"></script>
+    <script type="text/javascript" src="options.js"></script>
+</head>
+<body>
+    <h1>Fitotastic Options</h1>
+    <form id="opt_form">
+        <h3>Friend Stalker</h3>
+        <fieldset>
+            <legend>Who to show</legend>
+            <p>
+                <input type="radio" name="mffs_who" id="mffs_fans" value="fans" checked>
+                <label for="mffs_fans">All Followers</label>
+                <input type="radio" name="mffs_who" id="mffs_friends" value="friends">
+                <label for="mffs_friends">Friends (Followers that I follow back)</label>
+            </p>
+            <p>
+                <input type="checkbox" name="active" id="mffs_active" checked>
+                <label for="mffs_active">Hide Inactive</label>
+                <br><br>
+                <label>Inactive after</label>
+                <input name="mffs_active_days" size="2" value="90"> days.
+            </p>
+        </fieldset>
+        <p>
+            <button type="button" id="opt_submit" type="submit">Save Settings</button>
+        </p>
+    </form>
+</body>
+</html>

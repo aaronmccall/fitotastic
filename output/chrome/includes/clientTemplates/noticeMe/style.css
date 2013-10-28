@@ -1,0 +1,34 @@
+#noticeMe_modal h2 {
+  font-size: 24px;
+}
+#noticeMe_modal .widget-subsection {
+  background: #f4f5f5;
+}
+#noticeMe_modal .widget-subsection:first-of-type {
+  padding-bottom: 0;
+  background: #fff;
+  border-color: #f4f5f5;
+}
+#noticeMe_modal .noticeMe_nav {
+  margin-bottom: -1px;
+  text-align: center;
+}
+#noticeMe_modal .noticeMe_nav a {
+  display: inline-block;
+  padding: 0.25em 0.5em;
+  margin: 0 0.5em;
+  font-size: 1.5rem;
+  border-radius: 4px 4px 0 0;
+  background: #fff;
+  text-decoration: none;
+}
+#noticeMe_modal .noticeMe_nav a:hover,
+#noticeMe_modal .noticeMe_nav a.active {
+  background: #f4f5f5;
+}
+#noticeMe_modal .noticeMe_nav a:first-child {
+  margin-left: 0;
+}
+#noticeMe_modal .noticeMe_nav a:last-child {
+  margin-right: 0;
+}

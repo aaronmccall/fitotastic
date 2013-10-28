@@ -12,9 +12,9 @@ var DPN = (function () {
             if (!END) return;
             $.get('/notifications/?start=' + START + '&end=' + END, callback);
         },
-        processor = function (data) {
+        processor = function (html) {
             var notification_urls = [],
-                $prop_notifications = $(data).filter('.unread-notification')
+                $prop_notifications = $(html).filter('.unread-notification')
                                              .filter(':contains("gave you props")')
                                              .find('a').each(function () {
                         if (this.href) notification_urls.push(this.href);

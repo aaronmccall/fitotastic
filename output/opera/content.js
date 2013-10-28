@@ -2,11 +2,11 @@
 // @name Main Content Script
 // @include https://www.fitocracy.com/*
 // @include http://www.fitocracy.com/*
-// @require lib/jquery.1.8.3.min.js
-// @require lib/jquery-ui.1.9.2.min.js
-// @require lib/underscore.1.4.3.min.js
-// @require lib/async.js
-// @require lib/sugar-1.3.9-custom.development.js
+// @require res/jquery.1.8.3.min.js
+// @require res/jquery-ui.1.9.2.min.js
+// @require res/underscore.1.4.3.min.js
+// @require res/async.js
+// @require res/sugar-1.3.9-custom.development.js
 // @require includes/ui/templates.js
 // @require includes/ui/images.js
 // @require includes/ui/conversationalist.js
