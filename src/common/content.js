@@ -94,6 +94,7 @@ App.me = App.getCookie('km_ai') || App.getCookie('km_ni');
 if (!App.me) $.get('/profile/', function (html) {
     var match = html.match(/(\w+)'s Profile/);
     if (match && match[1]) App.me = match[1];
+    App.publish('app:me:change', App.me);
 });
 
 // Add PubSub capability to App

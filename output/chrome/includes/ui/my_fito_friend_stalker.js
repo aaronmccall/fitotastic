@@ -345,15 +345,23 @@ var Mffs = (function ($, _) {
 
     return {
         init: function (app) {
-            var link = $('<a id="mffs" href="#">Friend Stalker</a>');
-            friend_url = (function (username) {
-                var payload = { user: username };
-                return function (page) {
-                    payload.page = page || 0;
-                    return friend_url_tpl(payload);
+            var link = $('<a id="mffs" href="#">Friend Stalker</a>'),
+                friend_url_init = function (username) {
+                    var payload = { user: username };
+                    return function (page) {
+                        payload.page = page || 0;
+                        return friend_url_tpl(payload);
+                    };
                 };
-            })(app.me);
+
+            if (!app.me) {
+                app.subscribe('app:me:change', friend_url_init);
+            } else {
+                friend_url_init(app.me);
+            }
+            
             App = app;
+
             link.click(function (e) {
                 e.preventDefault();
                 var $header = $('#wrapper').find('header'),
