@@ -210,7 +210,7 @@ var Mffs = (function ($, _) {
     }
 
     function process_friends(friends, cb, opts) {
-        _.each(friends, function (friend) {
+        _.each(friends, function _friend_processor(friend) {
             var row = $friend_row || ($friend_row = $('<tr>'));
             friend.pic_url = pp_urlizer(friend);
             friend.throbber = App.throbber;
@@ -233,9 +233,9 @@ var Mffs = (function ($, _) {
     function load_friends(page, cb, opts) {
         var start_friend = Math.floor(page * friends_per_friend_page),
             end_friend = start_friend + friends_per_friend_page;
-        if (mffs_friends.length > end_friend) {
-            process_friends(mffs_friends.slice(start_friend, end_friend), cb);
-        } else {
+        // if (mffs_friends.length > end_friend) {
+        //     process_friends(mffs_friends.slice(start_friend, end_friend), cb);
+        // } else {
             // kango.invokeAsync('kango.storage.getItem', 'friends', function (friends) {
             //     var friends_includes_page = (friends && friends.length && (friends.length >= end_friend));
             //     if (friends) {
@@ -253,14 +253,14 @@ var Mffs = (function ($, _) {
             //         process_friends(friends.slice(start_friend, end_friend), cb);
             //     }
             // });
-            $.get(friend_url(friend_page), function (friends) {
+            $.get(friend_url(friend_page), function _get_friends_handler(friends) {
                 if (_.isArray(friends)) {
                     mffs_friends = mffs_friends.concat(friends);
                     if (friends.length < 5) friend_count = mffs_friends.length;
                     process_friends(friends, cb);
                 }
             });
-        }
+        // }
 
     }
 
@@ -348,7 +348,7 @@ var Mffs = (function ($, _) {
             var link = $('<a id="mffs" href="#">Friend Stalker</a>'),
                 friend_url_init = function (username) {
                     var payload = { user: username };
-                    return function (page) {
+                    friend_url = function (page) {
                         payload.page = page || 0;
                         return friend_url_tpl(payload);
                     };
