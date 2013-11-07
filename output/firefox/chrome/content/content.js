@@ -15,7 +15,6 @@
 // @require includes/ui/nsfw_hider.js
 // @require includes/ui/my_fito_friend_stalker.js
 // @require includes/ui/dissaprop.js
-// @require includes/ui/notice_me.js
 // ==/UserScript==
 
 var $content = $('#content'),
@@ -161,7 +160,7 @@ var $content = $('#content'),
 })(App);
 
 // Register UI modules to initialize
-App.UI.modules = [ Mffs, DPN, Totp, Conversationalist, HideNSFW, NoticeMe ];
+App.UI.modules = [ Mffs, DPN, Totp, Conversationalist, HideNSFW ];
 
 // Define who the current user is
 App.me = App.getCookie('km_ai') || App.getCookie('km_ni');

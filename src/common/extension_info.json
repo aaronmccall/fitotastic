@@ -3,10 +3,10 @@
   "description": "A set of helpers and tools for Fitocracy that assist with connection and communication.",
   "creator": "Aaron McCall",
   "content_scripts": [
-    "content.js"
+    "ui.js"
   ],
   "background_scripts": [
-    "res/underscore.1.4.3.min.js", "res/jquery.1.8.3.min.js", "res/async.js", "res/db.js", "main.js"
+    "res/underscore.1.4.3.min.js", "res/jquery.1.8.3.min.js", "main.js"
   ],
   "homepage_url": "https://fitotastic.amac.me",
   "options_page": "options.html",

@@ -1,15 +1,13 @@
 {
   "kango_version": "1.0.0 final", 
   "content_scripts": [
-    "content.js"
+    "ui.js"
   ], 
   "name": "Fitotastic", 
   "creator": "Aaron McCall", 
   "background_scripts": [
     "res/underscore.1.4.3.min.js", 
     "res/jquery.1.8.3.min.js", 
-    "res/async.js", 
-    "res/db.js", 
     "main.js"
   ], 
   "homepage_url": "https://fitotastic.amac.me", 
