@@ -1,0 +1,4 @@
+{
+	"maxProppableDays": 7,
+	"maxConcurrentXHR": 3
+}

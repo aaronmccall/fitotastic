@@ -1,0 +1,11 @@
+{
+  "friends": {
+    "key": { "keyPath": "id" },
+    "indexes": {
+      "followed": { },
+      "username": { "unique": true },
+      "level": {},
+      "last_workout": {}
+    }
+  }
+}

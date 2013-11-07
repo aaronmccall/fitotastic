@@ -1,0 +1,35 @@
+{
+  "name": "fitotastic",
+  "version": "0.1.4",
+  "description": "Tools for Fito socialites",
+  "main": "src/common/main.js",
+  "dependencies": {},
+  "devDependencies": {
+    "templatizer": "~0.2.4",
+    "browserify": "~2.34.3",
+    "db.js": "aaronmccall/db.js",
+    "async": "~0.2.9",
+    "underscore": "~1.5.2",
+    "sugar": "~1.4.1",
+    "mockconsole": "0.0.1",
+    "backbone": "~1.1.0",
+    "wildemitter": "0.0.5"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/aaronmccall/fitotastic.git"
+  },
+  "keywords": [
+    "chrome-extension"
+  ],
+  "author": "Aaron McCall",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "fdaa51c6004ac32d0c5e7b7d5fd1b6b166642e73",
+  "bugs": {
+    "url": "https://github.com/aaronmccall/fitotastic/issues"
+  }
+}
