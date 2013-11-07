@@ -24,8 +24,11 @@ light-grey = #bebcc0
         display: block
 
     &.followed
-      .mffs_user:after
-        content: "\00a0\2714"     
+      .mffs_user:after, em:after
+        content: "\00a0\2714"
+        
+    &.unfollowed
+      opacity: 0.5      
 
   .mffs_user,
   .mffs_level
@@ -55,8 +58,15 @@ light-grey = #bebcc0
     textarea
       height: 48px
 
-    li.info
-      white-space: pre-line
+    li
+        &.info
+         white-space: pre-line
+    .unfollow
+        position: absolute
+        top: -4px
+        right: -1em
+        -webkit-transform: scale(0.6)
+        transform: scale(0.6)
 
   .convo
     position: relative

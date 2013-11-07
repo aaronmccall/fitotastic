@@ -18,8 +18,12 @@
 #mffs_modal .mffs_friend:hover .mffs_detail {
   display: block;
 }
-#mffs_modal .mffs_friend.followed .mffs_user:after {
+#mffs_modal .mffs_friend.followed .mffs_user:after,
+#mffs_modal .mffs_friend.followed em:after {
   content: "\00a0\2714";
+}
+#mffs_modal .mffs_friend.unfollowed {
+  opacity: 0.5;
 }
 #mffs_modal .mffs_user,
 #mffs_modal .mffs_level {
@@ -51,6 +55,13 @@
 }
 #mffs_modal .mffs_detail li.info {
   white-space: pre-line;
+}
+#mffs_modal .mffs_detail .unfollow {
+  position: absolute;
+  top: -4px;
+  right: -1em;
+  -webkit-transform: scale(0.6);
+  transform: scale(0.6);
 }
 #mffs_modal .convo {
   position: relative;

@@ -2,7 +2,7 @@
     <Description about="urn:mozilla:install-manifest">
         <em:id>{B876911E-02E6-4638-B18C-382B4A397D4D}</em:id>
         <em:name>Fitotastic</em:name>
-        <em:version>0.1.4</em:version>
+        <em:version>0.1.5</em:version>
         <em:targetApplication>
             <Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>

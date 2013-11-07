@@ -10,7 +10,7 @@ var Mffs = (function ($, _) {
             "id":602799
           }
     */
-    var friend_url_tpl = _.template('https://www.fitocracy.com/get-user-friends/?user=<%= user %>&page=<%= page %>&followers=true'),
+    var friend_url_tpl = _.template('https://www.fitocracy.com/get-user-friends/?user=<%= user %>&page=<%= page %>&following=true'),
         stream_urlizer = _.template('https://www.fitocracy.com/activity_stream/<%= start %>/?user_id=<%= id %>'),
         pp_urlizer = _.template('https://s3.amazonaws.com/static.fitocracy.com/site_media/<%= pic %>'),
         profile_linker = _.template('<a href="/profile/<%= username %>/"><%= at_name %></a>'),
@@ -417,7 +417,7 @@ var Mffs = (function ($, _) {
                         } else {
                             load_next_stalker_page();
                         }
-                    }).on('click', '.mffs_detail button', function (e) {
+                    }).on('click', '.post-btn', function (e) {
                         e.preventDefault();
                         var $this = $(this),
                             $proppable = $this.closest('.proppable'),
@@ -450,6 +450,14 @@ var Mffs = (function ($, _) {
                     }).on('click', '.prop_all', function (e) {
                         e.preventDefault();
                         $('.proppable a', $list_table).not('.propped').each(function () { this.click(); });
+                    }).on('click', '.unfollow', function (e) {
+                        e.preventDefault();
+                        var $this = $(this),
+                            id = $this.data('userid');
+                        if (id) $.post('/unfollow/', {id: id}, function () {
+                            $this.closest('.mffs_friend').removeClass('followed').addClass('unfollowed');
+                            $this.hide(150);
+                        });
                     });
                     create_stalker_page(stalker_page);
                 }
