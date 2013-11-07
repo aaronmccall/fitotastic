@@ -135,7 +135,7 @@ var Mffs = (function ($, _) {
                             if (pr.length) {
                                 payload.pr = pr.find('.set_user_original').text().trim();
                             }
-                            output.push(templatizer.mffs.activity(payload));
+                            output.push(App.UI.templates.mffs.activity(payload));
                         });
                         return output;
                     })($this) : [$this.find('.dramatic-description').text().trim()],
@@ -147,11 +147,11 @@ var Mffs = (function ($, _) {
                 if (activity_time) title.push(activity_time);
 
                 if (!image.length) {
-                    image_src = FitotasticImages.workout_logo;
+                    image_src = App.UI.images.workout_logo;
                 } else {
                     image_src = image[0].src;
                 }
-                activities_list.push(templatizer.mffs.proppable({
+                activities_list.push(App.UI.templates.mffs.proppable({
                     title: title[0],
                     age: get_activity_datetime($this),
                     activity_age: $this.data('activity_age'),
@@ -203,7 +203,7 @@ var Mffs = (function ($, _) {
                     }
                     proppable_container.html('<span class="no-work">No workouts' + (last_ts?' in the last ' + humanized_timesince(last_ts):'.</span>'));
                     if (friend.last_convo) {
-                        proppable_container.append(templatizer.mffs.convo(friend.last_convo));
+                        proppable_container.append(App.UI.templates.mffs.convo(friend.last_convo));
                     }
                 }
             }
@@ -218,7 +218,7 @@ var Mffs = (function ($, _) {
         friend.info = friend.info.replace(/@(\w+)/g, function (at_name, username) {
             return profile_linker({username: username, at_name: at_name});
         }).replace(/\n{2,}/g, "\n").trim();
-        friend.el = friend.el || $(templatizer.mffs.friend(friend));
+        friend.el = friend.el || $(App.UI.templates.mffs.friend(friend));
         row.append(friend.el);
         add_proppables_to_friend(friend);
         friend_cells++;
@@ -294,7 +294,7 @@ var Mffs = (function ($, _) {
         // friend_page is the page in the fitocracy.com friend list
 
         if (!$mffs_pages.find('[data-mffs_page="' + page + '"]').length) {
-            var $page_link = templatizer.mffs.goto_link({page: page});
+            var $page_link = App.UI.templates.mffs.goto_link({page: page});
             if ($prev_page.length) {
                 $prev_page.after($page_link);
             } else {
@@ -394,10 +394,10 @@ var Mffs = (function ($, _) {
                     $modal.find('h2').css({
                         display: 'inline-block',
                         'margin-right': '1em'
-                    }).after(templatizer.mffs.nav());
+                    }).after(App.UI.templates.mffs.nav());
                     if (!mffs_style.length) {
                         mffs_style = $('<style id="mffs_style" />');
-                        mffs_style.text($(templatizer.mffs.style()).text());
+                        mffs_style.text($(App.UI.templates.mffs.style()).text());
                         $(document.body).append(mffs_style);
                     }
 
