@@ -6,14 +6,17 @@ var reqPath = '../src/common',
     mffs = require('./modules/mffs'),
     App = require('./app'),
     async = require('async'),
-    Messenger = require('../shared/messaging');
+    Messenger = require('../shared/messaging'),
+    __slice = Array.prototype.slice;
 
 
 App.messaging = new Messenger('ui');
 
 App.friends = new mffs.models.Friends();
-App.friends.on('change', function (friend) {
-    var channel = [App.friends.channel(), friend.channel(), 'change'].join(':');
+App.friends.on('all', function (event, friend, friends, opts) {
+    // var args = __slice.call(arguments, 1);
+    console.log('event: ' + event + "\nOptions: " + JSON.stringify(opts, null, 2));
+    var channel = [App.friends.channel(), friend.channel(), event].join(':');
     App.messaging.send(channel, friend.toJSON());
 });
 App.friends.add({id: 1, username: 'foo'});
@@ -27,7 +30,7 @@ module.exports = App;
 
 // Register UI modules to initialize
 App.UI.modules = [
-    // Mffs,
+    mffs,
     dissaprop,
     totp,
     conversationalist,

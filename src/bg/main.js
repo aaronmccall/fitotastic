@@ -2,13 +2,17 @@ var async = require('async'),
     database = require('./modules/database'),
     Messenger = require('../shared/messaging'),
     resolver = require('./helpers/resolver'),
+    friends = require('./friends'),
     xhr = require('./modules/xhrQueue');
 
 //            ms     min  hrs
 var STALE = ( 1000 * 60 * 60 ) * 2;
 var db, friends_updated;
-database.connect(function ( s ) {
-    db = s;
+database.connect(function (err, s) {
+    if (err) console.error('could not connect to database: ' + err);
+    console.log('database is ' + s);
+    App.db = db = s;
+    App.friends = friends.init(App);
 });
 
 
@@ -20,97 +24,61 @@ database.connect(function ( s ) {
 // }
 var App = {
 
+    site: 'https://www.fitocracy.com',
+
+    xhr: xhr,
+
     messaging: new Messenger('bg'),
 
-    options: kango.storage.getItem('appOptions'),
+    options: kango.storage.getItem('appOptions')||{ "mffs_who":"friends", "active":"on", "mffs_active_days":90 },
 
-    getPerformanceData: function (id_list, done) {
-        var csv_data = [];
-        async.forEach(
-            id_list,
-            function (id, next) {
-                xhr.add({
-                    url: 'https://www.fitocracy.com/_get_activity_history_json/?activity-id=' + id,
-                    cb: function (data) {
-                        csv_data.push(generate_csv(data));
-                        next();
-                    }
-                });
-            },
-            function (err) {
-                done(csv_data);
-            }
+    // getPerformanceData: function (id_list, done) {
+    //     var csv_data = [];
+    //     async.forEach(
+    //         id_list,
+    //         function (id, next) {
+    //             xhr.get('https://www.fitocracy.com/_get_activity_history_json/?activity-id=' + id, function (data) {
+    //                 csv_data.push(generate_csv(data));
+    //                 next();
+    //             });
+    //         },
+    //         function (err) {
+    //             done(csv_data);
+    //         }
+    //     );
+    // },
+
+    getUserData: function (username, callback) {
+        xhr.get(
+            'https://www.fitocracy.com/get_user_json_from_username/' + username + '/',
+            function (data) { callback(data); }
         );
     },
 
-    getUserData: function (username, callback) {
-        xhr.add({
-            url: 'https://www.fitocracy.com/get_user_json_from_username/' + username + '/',
-            cb: function (data) {
-                callback(data);
-            }
-        });
-    },
-
     getMyData: function (callback) {
-        if (!this.me) {
-            this.getUserData(this.getCookie('km_ai'), function (data) {
-                this.me = data;
-                callback(data);
+        if (!this.myData) {
+            this.get_me(function (me) {
+                this.getUserData(me, function (data) {
+                    this.myData = data;
+                    callback(data);
+                });
             });
         } else {
-            callback(this.me);
+            callback(this.myData);
         }
     },
 
-    getFriends: function (user, callback) {
-        // var friend_url_tpl = _.template('https://www.fitocracy.com/get-user-friends/?user=<%= user %>&page=<%= page %>&followers=true'),
-        //     retrieve = function (page) {
-        //         $.getJSON(friend_url_tpl({user: user, page: page}), processor);
-        //     },
-        //     payload = kango.storage.getItem('friends'),
-        //     fresh = (Date.now() - (kango.storage.getItem('friends_freshness')||0)) < STALE;
-        // function processor(friends) {
-        //     if (_.isArray(friends)) {
-        //         async.forEach(friends, function (friend, friend_done) {
-        //             async.waterfall(
-        //                 function (cb) {
-        //                     setLastWorkout(friend, cb);
-        //                 },
-        //                 function (friend, cb) {},
-        //                 function (friend, cb) {},
-        //                 function (err, friend) {
-        //                     friend_done();
-        //                 }
-        //             );
-                    
-        //         }, function (err) {
-        //             if (friends.length < 5) {
-        //                 App.appendUnique('friends', payload);
-        //                 return callback(payload);
-        //             }
-        //             retrieve(++page);
-        //         });
-                
-        //     }
-        // }
-        // if (payload) callback(payload);
-        // if (!fresh || !payload) {
-        //     payload = [];
-        //     retrieve(0);
-        // }
-        callback([]);
-    },
+    // getFriends: ,
 
     get_me: function (callback) {
         var me = App.me || kango.storage.getItem('me');
         if (me) return callback(me);
 
-        $.get('https://fitocracy.com/profile/', function (html) {
+        xhr.get('https://fitocracy.com/profile/', function (html) {
             var match = html.match(/(\w+)'s Profile/);
             if (match && match[1]) App.me = match[1];
             kango.storage.setItem('me', App.me);
-            callback(me);
+            callback(App.me);
         });
     }
 };
@@ -142,10 +110,16 @@ App.messaging.on('app:*', function (channel, payload, msg) {
         action = (split.length === 2) ? split.pop() : null,
         target = (split.length) ? split.pop() : null,
         args = [],
-        method_list = [], method;
+        method_list = [],
+        obj = App,
+        method;
     if (action) method_list.push(action);
-    if (target) method_list.push(target);
-    if (method_list.length && (method = App[method_list.join('_')])) {
+    if (target && typeof App[target] !== 'object') {
+        method_list.push(target);
+    } else {
+        obj = App[target];
+    }
+    if (method_list.length && (method = obj[method_list.join('_')])) {
         if (payload) args.push(payload);
         args.push(function (payload) {
             App.messaging.send(channel, payload, msg.source);

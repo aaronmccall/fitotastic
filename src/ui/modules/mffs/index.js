@@ -1,5 +1,12 @@
-var models = require('./models');
+var models = require('./models'),
+    views = require('./views');
+
 
 module.exports = {
-    models: models
+    models: models,
+    views: views,
+    init: function (app) {
+        app.UI.addItem(views.getLink());
+        app.messaging.send('app:friends:setGrid', views.calcGrid());
+    }
 };

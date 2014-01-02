@@ -1,23 +1,11 @@
-var xhrQueue = require('xhrQueue');
-var templatizer = require('../ui/templates');
-var config = require('./config.json');
-
-var queue;
-var getQueue = function () {
-    // If queue not retrieved before, get it and cache it locally.
-    if (!queue) queue = xhrQueue.getQueue();
-    // Once it's here, rewrite getQueue to just return the local reference;
-    getQueue = function () { return queue; };
-    // On first call we need to return the queue;
-    return queue;
-};
+var config = require('../config.json');
 
 var maxProppableAge;
 function getMaxProppableAge() {
     return maxProppableAge || (maxProppableAge = (24 * config.maxProppableDays));
 }
 
-var me;
+var me, xhr;
 function proppableFilter() {
     var $this = $(this),
         act_age = activity_age($this),
@@ -90,29 +78,27 @@ function activityDetail(activities_list, activity) {
 }
 
 function getProppables(id, start, callback) {
-    getQueue().push({
-        url: stream_urlizer({id: id, start: start}),
-        cb: function (html) {
-            var $dom = $(srcPrevent(html)),
-                page_age = activity_age($dom.find('.stream_item:first'));
+    xhr.get(stream_urlizer({id: id, start: start}), function (html) {
+        var $dom = $(srcPrevent(html)),
+            page_age = activity_age($dom.find('.stream_item:first'));
 
-            if (isNaN(page_age) || page_age > (24 * getMaxProppableAge())) {
-                return callback(null, []);
-            }
-
-            var activities = $dom.find(getProppableTypes()).not(proppableFilter),
-                activities_list = [];
-
-            _.reduce(activities.toArray(), activityDetail, activities_list);
-
-            callback(null, activities_list);
+        if (isNaN(page_age) || page_age > (24 * getMaxProppableAge())) {
+            return callback(null, []);
         }
+
+        var activities = $dom.find(getProppableTypes()).not(proppableFilter),
+            activities_list = [];
+
+        _.reduce(activities.toArray(), activityDetail, activities_list);
+
+        callback(null, activities_list);
     });
 }
 
 module.exports = {
-    init: function (username) {
+    init: function (username, xhrQueue) {
         me = username;
+        xhr = xhrQueue;
         return getProppables;
     }
 };
