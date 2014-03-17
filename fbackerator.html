@@ -1,0 +1,8 @@
+<!doctype html>
+
+ <p>
+    Here's a bookmarklet to auto-follow-back all of your recent follows;
+    <a href="javascript:(function () { $.get("https://www.fitocracy.com/notifications/?start=0&end=2000",function(a){function c(a){a&&(console.log("following: %s",a[0]),$.post("https://www.fitocracy.com/follow/",{id:a[0]},function(){console.log("marking notification at %s read.",a[1]),$.get(a[1],c.bind(null,b.shift()))}))}var b=$(a).filter('.unread-notification:contains("now following")').toArray().map(function(a){return[a.querySelector("p").innerText.trim().match(/^\w+/)[0],a.querySelector("a[href]").href]});confirm("Follow back "+b.length+" new followers?\n\n"+b.map(function(a){return a[0]}).join(", "))&&c(b.shift())}); })();">fbackerator</a>
+ </p>
+ <p>In order to save it, just drag the "fbackerator" link above to your bookmarks bar.</p>
+</html>
