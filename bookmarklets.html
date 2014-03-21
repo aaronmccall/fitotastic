@@ -1,5 +1,29 @@
 <!doctype html>
-
+<h1>How to create a bookmarklet:</h1>
+<ol>
+ <li>Select and copy the bookmarklet source from one of the text boxes below.</li>
+ <li>
+  Go to Bookmarks and click <b>Bookmark this Page</b> (Chrome/FF)<br>
+  <em><small>I honestly have no idea what to do in IE these days, but if someone tells me, I'll add it.<small></em>
+  </li>
+ <li>
+ <p>In Chrome, the dialog that opens will have an Edit button.
+   <ol>
+    <li>Click it and paste the source into the URL field.</li>
+    <li>Edit the name to some thing that makes sense.</li>
+    <li>Save!</li>
+   </ol>
+  </p>
+  <p>In Firefox, go ahead and change the name and click Done
+   <ol>
+    <li>Then go to Bookmarks again and click <b>Show All Bookmarks</b></li>
+    <li>Locate your new bookmark and click it.</li>
+    <li>Paste the bookmarklet source into the Location field</li>
+   </ol>
+  </p>
+ </li>
+ 
+</ol>
  <p>
     Here's a bookmarklet to auto-follow-back all of your recent follows;
     <textarea cols="100" rows="10">javascript:(function () { $.get("https://www.fitocracy.com/notifications/?start=0&end=2000",function(a){function c(a){a&&(console.log("following: %s",a[0]),$.post("https://www.fitocracy.com/follow/",{id:a[0]},function(){console.log("marking notification at %s read.",a[1]),$.get(a[1],c.bind(null,b.shift()))}))}var b=$(a).filter('.unread-notification:contains("now following")').toArray().map(function(a){return[a.querySelector("p").innerText.trim().match(/^\w+/)[0],a.querySelector("a[href]").href]});confirm("Follow back "+b.length+" new followers?\n\n"+b.map(function(a){return a[0]}).join(", "))&&c(b.shift())}); })();</textarea>
