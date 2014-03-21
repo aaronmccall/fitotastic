@@ -6,6 +6,6 @@
  </p>
  <p>
    How 'bout one to auto-select all your friends in the 'invite friends to group' box?
-   <textarea cols="100" rows="10">javascript:(function(){document.getElementById("invite-group-modal-trigger").click(),setTimeout(function(){var a=[],b={},c=$(".invite-modal"),d=document.getElementById("wrapped-group-name").innerText,e=$(".actionable",c).each(function(){a.push(this.id)});e.length;var g=$("form",c).serializeArray();return $.each(g,function(a,c){b[c.name]||(b[c.name]=c.value)}),b.friends_to_invite=a.join(","),confirm("Invite "+a.length+" friends to join "+d+"?")?($.post("https://www.fitocracy.com/invite_to_group/",b,function(b){b&&b.result&&alert("Invited "+a.length+" to join "+d+"!")}),void 0):alert("Aborted!")},2500)})()</textarea>
+   <textarea cols="100" rows="10">javascript:(function(){document.getElementById("invite-group-modal-trigger").click(),setTimeout(function(){var a=[],b={},c=$(".invite-modal"),d=document.getElementById("wrapped-group-name").innerText,e=$(".actionable",c).each(function(){a.push(this.id)});e.length;var g=$("form",c).serializeArray();return $.each(g,function(a,c){b[c.name]||(b[c.name]=c.value)}),b.friends_to_invite=a.join(","),confirm("Invite "+a.length+" friends to join "+d+"?")?($.post("https://www.fitocracy.com/invite_to_group/",b,function(b){b&&b.result&&alert("Invited "+a.length+" to join "+d+"!")}),void 0):alert("Aborted!")},3e3)})()</textarea>
  </p>
 </html>
