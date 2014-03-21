@@ -30,6 +30,6 @@
  </p>
  <p>
    How 'bout one to auto-select all your friends in the 'invite friends to group' box?
-   <textarea cols="100" rows="10">javascript:(function(){document.getElementById("invite-group-modal-trigger").click(),setTimeout(function(){var a=[],b={},c=$(".invite-modal"),d=document.getElementById("wrapped-group-name").innerText,e=$(".actionable",c).each(function(){a.push(this.id)});e.length;var g=$("form",c).serializeArray();return $.each(g,function(a,c){b[c.name]||(b[c.name]=c.value)}),b.friends_to_invite=a.join(","),confirm("Invite "+a.length+" friends to join "+d+"?")?($.post("https://www.fitocracy.com/invite_to_group/",b,function(b){b&&b.result&&alert("Invited "+a.length+" to join "+d+"!")}),void 0):alert("Aborted!")},3e3)})()</textarea>
+   <textarea cols="100" rows="10">javascript:(function(){var a=location.href.split("group/").pop().split("/").shift(),b="https://www.fitocracy.com/get_group_invite/"+a+"/",c=document.getElementById("wrapped-group-name").innerText,d={group_id:a},e=$("form",".invite-modal").serializeArray();$.each(e,function(a,b){!d[b.name]&&b.value&&(d[b.name]=b.value)}),$.get(b,function(a){var b=[],e=$(a.replace(/\bsrc=/,"data-src="));return e.each(function(){this.id&&b.push(this.id)}),d.friends_to_invite=b.join(","),console.log("Payload: %s",JSON.stringify(d)),confirm("Invite "+b.length+" friends to join "+c+"?")?($.post("https://www.fitocracy.com/invite_to_group/",d,function(a){a&&a.result&&alert("Invited "+b.length+" to join "+c+"!")}),void 0):alert("Aborted!")})})()</textarea>
  </p>
 </html>
