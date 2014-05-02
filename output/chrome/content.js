@@ -90,11 +90,22 @@ var $content = $('#content'),
     },
     indicator_cache = {};
 
-App.me = App.getCookie('km_ai') || App.getCookie('km_ni');
-if (!App.me) $.get('/profile/', function (html) {
-    var match = html.match(/(\w+)'s Profile/);
-    if (match && match[1]) App.me = match[1];
-    App.publish('app:me:change', App.me);
+if (!App.me) kango.invokeAsync('kango.storage.getItem', 'me', function (me) {
+    if (me && me.username) {
+        App.me = me.username;
+        App.publish('app:me:change', App.me);
+    }
+    if (!me || (me.ts && me.ts < Date.now()-(1000*60*60*4))) {
+        $.get('/profile/', function (html) {
+            var match = html.match(/(\w+)'s Profile/);
+            if (match && match[1]) App.me = match[1];
+            kango.invokeAsync('kango.storage.setItem', 'me', {
+                username: App.me,
+                ts: Date.now()
+            });
+            App.publish('app:me:change', App.me);
+        });
+    }
 });
 
 // Add PubSub capability to App

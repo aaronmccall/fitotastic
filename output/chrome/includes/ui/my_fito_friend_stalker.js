@@ -456,7 +456,7 @@ var Mffs = (function ($, _) {
                             id = $this.data('userid');
                         if (id) $.post('/unfollow/', {id: id}, function () {
                             $this.closest('.mffs_friend').removeClass('followed').addClass('unfollowed');
-                            $this.hide();
+                            $this.hide(150);
                         });
                     });
                     create_stalker_page(stalker_page);
