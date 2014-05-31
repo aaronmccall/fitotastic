@@ -16,7 +16,7 @@ var Mffs = (function ($, _) {
         profile_linker = _.template('<a href="/profile/<%= username %>/"><%= at_name %></a>'),
         workout_urlizer = _.template('https://www.fitocracy.com/activity_stream/0/?user_id=<%= user_id %>&types=WORKOUT'),
         friend_page = 0,
-        friends_per_friend_page = 5,
+        friends_per_friend_page = 50,
         stalker_page = 1,
         stalker_pages = {},
         prop_activity_url = 'https://www.fitocracy.com/give_prop/',
@@ -33,7 +33,9 @@ var Mffs = (function ($, _) {
         activity_age = function (activity) {
             return to_hours(Date.now(), Date.parse(activity.find('.action_time').text().trim()||''));
         },
-        mffs_friends = [],
+        friend_map = {},
+        queued_friends = [],
+        friend_list = [],
         proppables_xhr_queue = [],
         App, $modal, $modal_contents, $list_table, $list_div, $friend_row,
         friend_count, friend_url, friends_per_stalker_page, friends_per_stalker_row, get_last_conversation;
@@ -106,7 +108,7 @@ var Mffs = (function ($, _) {
                                     return propped_by_me || (act_age > (24*7));
                                 }),
                 activities_list = [],
-                friend = _(mffs_friends).find(function (friend) { return id === friend.id; }),
+                friend = friend_map[id],
                 last_convo = !friend.last_convo ? get_last_conversation($(data), friend) : {};
             // If friend doesn't have last_convo yet and we've retrieved one, add it to friend.
             if (!friend.last_convo && !_.isEmpty(last_convo)) {
@@ -209,14 +211,22 @@ var Mffs = (function ($, _) {
         );
     }
 
+    function nameLinker(at_name, username) {
+        return profile_linker({username: username, at_name: at_name});
+    }
+
     function process_friends(friends, cb, opts) {
-        _.each(friends, function _friend_processor(friend) {
+        var friend;
+        while ((friend = friends.shift())) {
+            // Add friend to friend_map hash and friend_list
+            if (!friend_map[friend.id]) {
+                friend_map[friend.id] = friend;
+            }
+
             var row = $friend_row || ($friend_row = $('<tr>'));
             friend.pic_url = pp_urlizer(friend);
             friend.throbber = App.throbber;
-            friend.info = friend.info.replace(/@(\w+)/g, function (at_name, username) {
-                return profile_linker({username: username, at_name: at_name});
-            }).replace(/\n{2,}/g, "\n").trim();
+            friend.info = friend.info.replace(/@(\w+)/g, nameLinker).replace(/\n{2,}/g, "\n").trim();
             friend.el = friend.el || $(templatizer.mffs.friend(friend));
             row.append(friend.el);
             add_proppables_to_friend(friend);
@@ -225,42 +235,32 @@ var Mffs = (function ($, _) {
                 $list_table.append(row);
                 $friend_row = null;
             }
-        });
-        friend_page++;
+            if (friend_cells === friends_per_stalker_page) {
+                break;
+            }
+        }
         cb();
     }
 
     function load_friends(page, cb, opts) {
         var start_friend = Math.floor(page * friends_per_friend_page),
             end_friend = start_friend + friends_per_friend_page;
-        // if (mffs_friends.length > end_friend) {
-        //     process_friends(mffs_friends.slice(start_friend, end_friend), cb);
-        // } else {
-            // kango.invokeAsync('kango.storage.getItem', 'friends', function (friends) {
-            //     var friends_includes_page = (friends && friends.length && (friends.length >= end_friend));
-            //     if (friends) {
-            //         mffs_friends = friends;
-            //     }
-            //     if (!friends || !friends_includes_page) {
-            //         $.get(follower_url + friend_page, function (friends) {
-            //             kango.invokeAsync('App.appendUnique', 'friends', friends, function (stored_friends) {
-            //                 if (friends.length < 5) friend_count = stored_friends.length;
-            //                 mffs_friends = stored_friends;
-            //             });
-            //             process_friends(friends, cb);
-            //         });
-            //     } else {
-            //         process_friends(friends.slice(start_friend, end_friend), cb);
-            //     }
-            // });
-            $.get(friend_url(friend_page), function _get_friends_handler(friends) {
-                if (_.isArray(friends)) {
-                    mffs_friends = mffs_friends.concat(friends);
-                    if (friends.length < 5) friend_count = mffs_friends.length;
-                    process_friends(friends, cb);
+
+        $.get(friend_url(page), function _get_friends_handler(friends) {
+            if (_.isArray(friends)) {
+                if (page === 0) {
+                    // console.log('first page of friends: setting friends_per_friend_page to %s', friends.length);
+                    friends_per_friend_page = friends.length;
                 }
-            });
-        // }
+                // console.log('server responded with %s friends in friend page %s', friends.length, page);
+                if (friend_list.length <= (page+1) * friends_per_friend_page) {
+                    // console.log('adding %s friends to friend_list', friends.length);
+                    friend_list.push.apply(friend_list, friends);
+                }
+                return process_friends(friends, cb);
+            }
+            // console.log('server response was NOT an array for friend page %s', page);
+        });
 
     }
 
@@ -269,13 +269,11 @@ var Mffs = (function ($, _) {
     }
 
     function create_stalker_page(page) {
-        var page_ratio = Math.floor(friends_per_stalker_page / friends_per_friend_page),
-            $mffs_pages = $modal.find('.mffs_pages'),
+        var $mffs_pages = $modal.find('.mffs_pages'),
             $prev_page = $mffs_pages.find('.goto_' + (page-1));
+        // console.log('Generating stalker page: %s (%s)', page, friend_page);
         // How many friends have we rendered for the UI?
         friend_cells = 0;
-        // friend_page is the page in the fitocracy.com friend list
-        friend_page = (page > 1) ? ((page - 1) * page_ratio)+1 : 0;
 
         if (!$modal_contents.find('.throbber').length) {
             $modal_contents.find('p:last').html(App.throbber);
@@ -290,11 +288,24 @@ var Mffs = (function ($, _) {
         }
         App.async.whilst(
             function () {
-                return friend_cells < friends_per_stalker_page && (!friend_count || mffs_friends.length < friend_count);
+                return friend_cells < friends_per_stalker_page;
             },
 
             function (cb) {
-                load_friends(friend_page, cb);
+                // console.log('friend_cells: %s, friend_list.length: %s', friend_cells, friend_list.length);
+                if (friend_cells === 0 && friend_list.length) {
+                    var end_friend = (stalker_page * friends_per_stalker_page);
+                    var start_friend = end_friend - friends_per_stalker_page;
+                    if (start_friend < 0) start_friend = 0;
+                    if ((start_friend < friend_list.length)) {
+                        var sliced = friend_list.slice(start_friend, end_friend);
+                        // console.log('retrieving friends from friend_list (%s) starting at %s and ending at %s',
+                        //     friend_list.length, start_friend, end_friend
+                        // );
+                        return process_friends(sliced, cb);
+                    }
+                }
+                load_friends(friend_page++, cb);
             },
 
             function (err) {
@@ -380,6 +391,7 @@ var Mffs = (function ($, _) {
                 friends_per_stalker_row = Math.floor((window_width-32)/140);
                 /*console.log('stalker_rows: ' + stalker_rows);*/
                 friends_per_stalker_page = (stalker_rows*friends_per_stalker_row);
+                // console.log('friends per stalker page: %s', friends_per_stalker_page);
                 $modal_contents = $modal.find('.modal_contents').css({
                     'height': (window_height - 80) + 'px',
                     'overflow': 'scroll'
@@ -408,7 +420,7 @@ var Mffs = (function ($, _) {
                             if (res && res.result) $this.addClass('propped');
                         });
                     }).on('click', '.mffs_nav a', function (e) {
-                        var mffs_page = $(this).data('mffs_page');
+                        var mffs_page = parseInt($(this).data('mffs_page'), 10);
                         e.preventDefault();
                         if (mffs_page) {
                             load_stalker_page(stalker_page = mffs_page);
@@ -480,7 +492,7 @@ var Mffs = (function ($, _) {
             // app.subscribe('reload:stalker_page', function (page) {
             //     var start = (page - 1) * friends_per_stalker_page,
             //         end = page * friends_per_stalker_page,
-            //         friends = mffs_friends.slice(start, end);
+            //         friends = friend_map.slice(start, end);
             // });
             get_last_conversation = (function () {
                 var author_getter = function (author) {
