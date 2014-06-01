@@ -114,51 +114,55 @@ var Mffs = (function ($, _) {
             if (!friend.last_convo && !_.isEmpty(last_convo)) {
                 friend.last_convo = last_convo;
             }
-
-            activities.each(function () {
-                var $this = $(this),
-                    activity_type = $this.attr('data-ag-type'),
-                    title = [(activity_type === 'workout') ? $this.find('.stream_total_points').text().trim() : $this.find('.dramatic-title:first').text().trim()],
-                    activity_detail = (activity_type === 'workout') ? (function (workout) {
-                        var items = workout.find('.action_detail > li'),
-                            output = [];
-                        items.each(function () {
-                            var activity = $(this),
-                                payload = {},
-                                pr = activity.find('.pr');
-                            payload.name = activity.find('.action_prompt').text().replace(/:/g, '').trim();
-                            payload.note = activity.find('.stream_note').text();
-                            if (pr.length) {
-                                payload.pr = pr.find('.set_user_original').text().trim();
-                            }
-                            output.push(templatizer.mffs.activity(payload));
-                        });
-                        return output;
-                    })($this) : [$this.find('.dramatic-description').text().trim()],
-                    activity_time = get_activity_datetime($this),
-                    url = $this.find('.action_time').attr('href'),
-                    image = get_activity_image($this),
-                    image_src;
-                if (activity_detail.length) title.push(activity_detail.join(', '));
-                if (activity_time) title.push(activity_time);
-
+            App.async.forEach(activities.toArray(), _.defer.bind(_, function (activity, activityNext) {
+                if (activities_list.length === 4) activityNext('done');
+                var $this = $(activity);
+                var activity_type = $this.attr('data-ag-type');
+                var activity_detail = [];
+                var activity_time = get_activity_datetime($this);
+                var url = $this.find('.action_time').attr('href');
+                var image = get_activity_image($this);
+                var image_src, title = [];
                 if (!image.length) {
                     image_src = FitotasticImages.workout_logo;
                 } else {
                     image_src = image[0].src;
                 }
-                activities_list.push(templatizer.mffs.proppable({
-                    title: title[0],
+                var activityPayload = {
                     age: get_activity_datetime($this),
                     activity_age: $this.data('activity_age'),
-                    id: this.id.split('_').pop(),
+                    id: activity.id.split('_').pop(),
                     href: url || '#',
                     image_src: image_src,
-                    details: activity_detail,
+                    details: [],
                     isWorkout: activity_type === 'workout'
-                }));
+                };
+                if (activity_type === 'workout') {
+                    activityPayload.title = $this.find('.stream_total_points').text().trim();
+                    App.async.map($this.find('.action_detail > li').toArray(), _.defer.bind(_, function (item, itemNext) {
+                        var activity = $(item);
+                        var payload = {};
+                        var pr = activity.find('.pr');
+                        payload.name = activity.find('.action_prompt').text().replace(/:/g, '').trim();
+                        payload.note = activity.find('.stream_note').text();
+                        if (pr.length) {
+                            payload.pr = pr.find('.set_user_original').text().trim();
+                        }
+                        itemNext(null, templatizer.mffs.activity(payload));
+                    }), function (err, details) {
+                        activityPayload.details = details;
+                        activities_list.push(templatizer.mffs.proppable(activityPayload));
+                        activityNext();
+                    });
+                } else {
+                    activityPayload.title = $this.find('.dramatic-title:first').text().trim();
+                    activityPayload.details.push($this.find('.dramatic-description').text().trim());
+                    activities_list.push(templatizer.mffs.proppable(activityPayload));
+                    activityNext();
+                }
+            }), function (err) {
+                callback(null, activities_list);
             });
-            callback(null, activities_list);
         }));
     }
 
@@ -191,7 +195,7 @@ var Mffs = (function ($, _) {
                             a_age = a_age_match ? parseFloat(a_age_match[1]) : NaN;
                         return b_age - a_age;
                     });
-                    proppable_container.html(proppables.slice(0, 3).join("\n"));
+                    proppable_container.html(proppables.slice(0, 4).join("\n"));
                 } else {
                     $.get(workout_urlizer({user_id: friend.id}), function (html) {
                         var activity = $(html).find('.action_time:first'),
@@ -199,7 +203,7 @@ var Mffs = (function ($, _) {
                         if (last_ts && (to_hours(Date.now(), last_ts) < 168)) {
                             return proppable_container.text('You\'ve propped \'em all!');
                         }
-                        proppable_container.html('<span class="no-work">No workouts' + (last_ts?' in the last ' + humanized_timesince(last_ts):'.</span>'));
+                        proppable_container.html('<span class="no-work">No workouts' + (last_ts ? ' for ' + humanized_timesince(last_ts) : '.</span>'));
                         if (friend.last_convo) {
                             proppable_container.append(templatizer.mffs.convo(friend.last_convo));
                         } else {
@@ -379,15 +383,16 @@ var Mffs = (function ($, _) {
                     mffs_style = $('#mffs_style'),
                     window_height = $(window).height(),
                     window_width = $(window).width(),
-                    stalker_rows = Math.floor((window_height-80)/187);
+                    stalker_rows = Math.floor((window_height-80)/172);
                 $list_div = $list_div || $('<div class="friend-list"/>');
                 $list_table = $list_table || $('<table style="border:none" />');
-                $modal = app.getModal('mffs_modal', 'My Friends', { height: 'auto', width: (window_width-32) + 'px' }, {
+                var position = {
                     my: 'center top',
-                    at: 'center top+' + 16,
+                    at: 'center top+16',
                     of: 'body',
                     collision: 'none'
-                });
+                };
+                $modal = app.getModal('mffs_modal', 'My Friends', { height: 'auto', width: (window_width-32) + 'px' }, position);
                 friends_per_stalker_row = Math.floor((window_width-32)/140);
                 /*console.log('stalker_rows: ' + stalker_rows);*/
                 friends_per_stalker_page = (stalker_rows*friends_per_stalker_row);
@@ -395,6 +400,18 @@ var Mffs = (function ($, _) {
                 $modal_contents = $modal.find('.modal_contents').css({
                     'height': (window_height - 80) + 'px',
                     'overflow': 'scroll'
+                });
+                $(window).on('resize', function () {
+                    window_width = $(window).width();
+                    window_height = $(window).height();
+
+                    stalker_rows = Math.floor((window_height-80)/172);
+                    friends_per_stalker_row = Math.floor((window_width-32)/140);
+                    friends_per_stalker_page = (stalker_rows*friends_per_stalker_row);
+
+                    $modal.position(position);
+                    $modal.css({ height: 'auto', width: (window_width-32) + 'px' });
+                    $modal_contents.css({ 'height': (window_height - 80) + 'px' });
                 });
                 if (!$modal_contents.find('.friend-list').length) {
                     $list_div.append($list_table);
