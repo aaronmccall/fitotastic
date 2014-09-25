@@ -100,10 +100,13 @@ if (!App.me) kango.invokeAsync('kango.storage.getItem', 'me', function (me) {
         App.me = me.username;
         App.publish('app:me:change', App.me);
     }
-    if (!me || (me.ts && me.ts < Date.now()-(1000*60*60*4))) {
+    if (!me || !me.username || (me.ts && me.ts < Date.now()-(1000*60*60*4))) {
         $.get('/profile/', function (html) {
-            var match = html.match(/(\w+)'s Profile/);
-            if (match && match[1]) App.me = match[1];
+            var match = html.match(/<title>.*<\/title>/);
+            if (match) {
+                var titleSplit = match[0].split(/\s*\|\s*/);
+                if (titleSplit.length === 2) App.me = titleSplit[1].split("'s").shift();
+            }
             kango.invokeAsync('kango.storage.setItem', 'me', {
                 username: App.me,
                 ts: Date.now()
