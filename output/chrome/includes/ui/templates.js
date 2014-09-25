@@ -63,7 +63,7 @@ exports["mffs"]["friend"] = function anonymous(locals) {
         href: "/profile/" + username + "/"
     }, {
         href: true
-    }) + "><strong>" + jade.escape(null == (jade.interp = username) ? "" : jade.interp) + "</strong><em> \n(" + jade.escape((jade.interp = level) == null ? "" : jade.interp) + ')</em></a></li><li class="info">' + (null == (jade.interp = info) ? "" : jade.interp) + '</li></ul><textarea maxlength="500" cols="27" rows="5"></textarea><button class="pill-btn munsell-blue-btn post-btn">Post</button></div></div><p class="proppables">Loading… </p></td>');
+    }) + "><strong>" + jade.escape(null == (jade.interp = username) ? "" : jade.interp) + "</strong><em> \n(" + jade.escape((jade.interp = level) == null ? "" : jade.interp) + ')</em></a></li><li class="info">' + (null == (jade.interp = info) ? "" : jade.interp) + '</li></ul><textarea maxlength="500" cols="27" rows="5"></textarea><button class="pill-btn munsell-blue-btn post-btn">Post</button></div></div><p class="proppables"></p></td>');
     return buf.join("");
 };
 
@@ -103,11 +103,13 @@ exports["mffs"]["proppable"] = function anonymous(locals) {
     }) + "><a" + jade.attrs({
         title: title,
         href: href,
-        "data-activity-id": id
+        "data-activity-id": id,
+        target: "_blank"
     }, {
         title: true,
         href: true,
-        "data-activity-id": true
+        "data-activity-id": true,
+        target: true
     }) + "><img" + jade.attrs({
         src: image_src
     }, {

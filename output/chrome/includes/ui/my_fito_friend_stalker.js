@@ -1,3 +1,4 @@
+/* jshint expr:true */
 var Mffs = (function ($, _) {
     /*
         get-user-friends returns an array of objects like so:
@@ -36,8 +37,7 @@ var Mffs = (function ($, _) {
         friend_map = {},
         queued_friends = [],
         friend_list = [],
-        proppables_xhr_queue = [],
-        App, $modal, $modal_contents, $list_table, $list_div, $friend_row,
+        App, xhr, proppables_xhr, $modal, $modal_contents, $list_table, $list_div, $friend_row,
         friend_count, friend_url, friends_per_stalker_page, friends_per_stalker_row, get_last_conversation;
 
     function date_prettifier(_, match) {
@@ -64,10 +64,16 @@ var Mffs = (function ($, _) {
         return image;
     }
 
-    function humanized_timesince(activity_utime) {
-        var datetime = null;
-        if (activity_utime) {
-            activity_hours = to_hours(Date.now(), activity_utime);
+    function humanized_timesince(time_or_age, is_hours) {
+        var datetime = null, activity_hours;
+
+        if (time_or_age && is_hours) {
+            activity_hours = time_or_age;
+        } else {
+            activity_hours = to_hours(Date.now(), time_or_age);
+        }
+
+        if (activity_hours) {
             if (activity_hours < 0.1) {
                 datetime = 'now';
             } else if (activity_hours < 1) {
@@ -93,29 +99,33 @@ var Mffs = (function ($, _) {
         return humanized_timesince(activity_utime);
     }
 
-    function get_proppables(id, start, callback) {
+    function activityFilter() {
+        var $this = $(this),
+            act_age = activity_age($this),
+            propped_by_me = !!$this.find('.proppers a[href="/profile/' + App.me + '/"]').length;
+        $this.data('activity_age', act_age);
+        return propped_by_me || (act_age > (24*7));
+    }
+
+    function get_proppables(friend, start, callback) {
+        var proppable_container = friend.el.find('.proppables');
         // data-ag-type: workout, levelup, questcomplete, badgecomplete
-        proppables_xhr_queue.push($.get(stream_urlizer({id: id, start: start}), function (data) {
+        proppables_xhr.get(stream_urlizer({id: friend.id, start: start}), function (data) {
             var dom = $(data.replace(/src=/g, 'src-attr=')),
                 page_age = activity_age(dom.find('.stream_item:first'));
-            if (isNaN(page_age) || page_age > (24*7)) return callback(null, []);
+            if (isNaN(page_age) || page_age > (24*7)) {
+                return callback(null, {proppables: friend.activities_list, age: page_age});
+            }
             var activities = dom.find('[data-ag-type^=badge],[data-ag-type^=level],[data-ag-type^=quest],[data-ag-type^=work]')
-                                .not(function () {
-                                    var $this = $(this),
-                                        act_age = activity_age($this),
-                                        propped_by_me = !!$this.find('.proppers a[href="/profile/' + App.me + '/"]').length;
-                                    $this.data('activity_age', act_age);
-                                    return propped_by_me || (act_age > (24*7));
-                                }),
-                activities_list = [],
-                friend = friend_map[id],
+                                .not(activityFilter),
                 last_convo = !friend.last_convo ? get_last_conversation($(data), friend) : {};
             // If friend doesn't have last_convo yet and we've retrieved one, add it to friend.
             if (!friend.last_convo && !_.isEmpty(last_convo)) {
                 friend.last_convo = last_convo;
             }
             App.async.forEach(activities.toArray(), _.defer.bind(_, function (activity, activityNext) {
-                if (activities_list.length === 4) activityNext('done');
+                if (friend.activities_list.length > 3 || friend.el.find('.proppable').length > 3) activityNext('done');
+                if (friend.activities_list.length === 0) proppable_container.html('');
                 var $this = $(activity);
                 var activity_type = $this.attr('data-ag-type');
                 var activity_detail = [];
@@ -151,65 +161,82 @@ var Mffs = (function ($, _) {
                         itemNext(null, templatizer.mffs.activity(payload));
                     }), function (err, details) {
                         activityPayload.details = details;
-                        activities_list.push(templatizer.mffs.proppable(activityPayload));
-                        activityNext();
+                        if (friend.el.find('.proppable').length < 4 && friend.activities_list.length < 4) {
+                            proppable_container.append(templatizer.mffs.proppable(activityPayload));
+                            friend.activities_list.push(activityPayload);
+                            return activityNext();
+                        }
+                        activityNext('done');
                     });
                 } else {
                     activityPayload.title = $this.find('.dramatic-title:first').text().trim();
                     activityPayload.details.push($this.find('.dramatic-description').text().trim());
-                    activities_list.push(templatizer.mffs.proppable(activityPayload));
-                    activityNext();
+                    if (friend.el.find('.proppable').length < 4 && friend.activities_list.length < 4) {
+                        proppable_container.append(templatizer.mffs.proppable(activityPayload));
+                        friend.activities_list.push(activityPayload);
+                        return activityNext();
+                    }
+                    activityNext('done');
                 }
             }), function (err) {
-                callback(null, activities_list);
+                callback(null, {proppables: friend.activities_list, age: page_age});
             });
-        }));
+        });
     }
 
     function add_proppables_to_friend(friend) {
-        var proppables = [],
-            stream_start = 0,
-            abort_proppable = false;
+        var proppables = [];
+        var stream_start = 0;
+        var MAX_STREAM_START = 90;
+        var abort_proppable = false;
+        var checked_last = false;
+        var proppable_container = friend.el.find('.proppables');
+        var msg;
+        friend.activities_list = [];
         App.async.whilst(
             function () {
-                return (!abort_proppable) && (proppables && proppables.length < 6) && (stream_start < 75);
+                return (!abort_proppable) && (friend.activities_list.length < 4) && (stream_start < MAX_STREAM_START);
             },
             function (cb) {
-                get_proppables(friend.id, stream_start, function (err, proppables_list) {
-                    if (!err) {
-                        if (proppables && proppables_list && proppables_list.length) {
-                            proppables = proppables.concat(proppables_list);
+                if (!checked_last) {
+                    xhr.get(workout_urlizer({user_id: friend.id}), function (html) {
+                        proppable_container.length && proppable_container.html(App.throbber);
+                        html = html.replace(/src=/g, 'src-attr=');
+                        var first_activity = $(html).find('.stream_item:first');
+                        var first_age = activity_age(first_activity);
+                        if (!first_age || first_age > (24 * 7)) {
+                            msg = '<span class="no-work">No workouts' + (first_age ? ' for ' + humanized_timesince(first_age, true) : '') + '.</span>';
+                            return cb('no-workouts');
                         }
-                        stream_start += stream_step;
-                    }
-                    cb(err);
-                });
+                        var unpropped = $('.stream_item', html).not(activityFilter);
+                        var last_ts = first_activity.length ? Date.parse(first_activity.find('.action_time').text().trim()) : NaN;
+                        checked_last = true;
+
+                        if (first_age < 168 && !unpropped.length) {
+                            return cb('all-propped');
+                        }
+                        cb();
+                    });
+                } else {
+                    get_proppables(friend, stream_start, function (err, payload) {
+                        if (!err) {
+                            if (proppables && payload && payload.proppables && payload.proppables.length) {
+                                proppables = proppables.concat(payload.proppables);
+                            }
+                            if (payload && payload.age > (24 * 7)) abort_proppable = true;
+                            stream_start += stream_step;
+                        }
+                        cb(err);
+                    });
+                }
             },
             function (err) {
-                var proppable_container = friend.el.find('.proppables');
-                if (proppable_container.length && proppables.length) {
-                    proppables.sort(function (a, b) {
-                        var b_age_match = b.match(/data-activity_age='([^']+)/),
-                            a_age_match = a.match(/data-activity_age='([^']+)/),
-                            b_age = b_age_match ? parseFloat(b_age_match[1]) : NaN,
-                            a_age = a_age_match ? parseFloat(a_age_match[1]) : NaN;
-                        return b_age - a_age;
-                    });
-                    proppable_container.html(proppables.slice(0, 4).join("\n"));
-                } else {
-                    $.get(workout_urlizer({user_id: friend.id}), function (html) {
-                        var activity = $(html).find('.action_time:first'),
-                            last_ts = activity.length ? Date.parse(activity.text().trim()) : NaN;
-                        if (last_ts && (to_hours(Date.now(), last_ts) < 168)) {
-                            return proppable_container.text('You\'ve propped \'em all!');
-                        }
-                        proppable_container.html('<span class="no-work">No workouts' + (last_ts ? ' for ' + humanized_timesince(last_ts) : '.</span>'));
-                        if (friend.last_convo) {
-                            proppable_container.append(templatizer.mffs.convo(friend.last_convo));
-                        } else {
-                            /*console.log('no last_convo for ' + friend.username);*/
-                        }
-                    });
+                if (proppable_container.length) {
+                    if (proppable_container.find('.proppable').length) return;
+                    if (err && msg) {
+                        return proppable_container.html(msg);
+                    }
+                    proppable_container.html('<span>You\'ve propped \'em all!</span>');
                 }
             }
         );
@@ -250,7 +277,7 @@ var Mffs = (function ($, _) {
         var start_friend = Math.floor(page * friends_per_friend_page),
             end_friend = start_friend + friends_per_friend_page;
 
-        $.get(friend_url(page), function _get_friends_handler(friends) {
+        xhr.get(friend_url(page), function _get_friends_handler(friends) {
             if (_.isArray(friends)) {
                 if (page === 0) {
                     // console.log('first page of friends: setting friends_per_friend_page to %s', friends.length);
@@ -264,7 +291,7 @@ var Mffs = (function ($, _) {
                 return process_friends(friends, cb);
             }
             // console.log('server response was NOT an array for friend page %s', page);
-        });
+        }, {priority: 1});
 
     }
 
@@ -376,7 +403,8 @@ var Mffs = (function ($, _) {
             }
             
             App = app;
-
+            xhr = App.xhrFactory(App.async, 2);
+            proppables_xhr = App.xhrFactory(App.async, 2);
             link.click(function (e) {
                 e.preventDefault();
                 var $header = $('#wrapper').find('header'),
@@ -463,7 +491,7 @@ var Mffs = (function ($, _) {
                             url = profile_status_url;
                             payload = { profile_user: id, status_text: comment_text };
                         }
-                        $.post(url, payload, function (data) {
+                        App.xhr.post(url, payload, function (data) {
                             if (data && data.result) {
                                 $this.prevAll('.charometer').remove();
                                 $this.text('Success!').fadeOut('slow');
@@ -478,12 +506,17 @@ var Mffs = (function ($, _) {
                         $this.prop('disabled', true).text('Saving...');
                     }).on('click', '.prop_all', function (e) {
                         e.preventDefault();
-                        $('.proppable a', $list_table).not('.propped').each(function () { this.click(); });
+                        $('.proppable a', $list_table).not('.propped').each(_.defer.bind(_, function (i, a) {
+                            var $this = $(a);
+                            App.giveProp($this.data('activity-id'), function (res) {
+                                if (res && res.result) $this.addClass('propped');
+                            }, ((i % 2 === 0) ? xhr : proppables_xhr));
+                        }));
                     }).on('click', '.unfollow', function (e) {
                         e.preventDefault();
                         var $this = $(this),
                             id = $this.data('userid');
-                        if (id) $.post('/unfollow/', {id: id}, function () {
+                        if (id) App.xhr.post('/unfollow/', {id: id}, function () {
                             $this.closest('.mffs_friend').removeClass('followed').addClass('unfollowed');
                             $this.hide(150);
                         });
@@ -498,12 +531,8 @@ var Mffs = (function ($, _) {
             app.addItem(link);
             // Abort all proppables requests that have not completed.
             app.subscribe('change:stalker_page', function () {
-                var old_queue = proppables_xhr_queue;
-                proppables_xhr_queue = [];
-                _(old_queue).each(function (xhr) {
-                    if (xhr && xhr.readyState === 4) return;
-                    if (xhr && xhr.abort) xhr.abort();
-                });
+                xhr.getQueue().kill();
+                proppables_xhr.getQueue().kill();
             });
             // Refresh proppables on stalker pages when they are reloaded.
             // app.subscribe('reload:stalker_page', function (page) {

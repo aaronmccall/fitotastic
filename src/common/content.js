@@ -14,6 +14,7 @@
 // @require includes/ui/nsfw_hider.js
 // @require includes/ui/my_fito_friend_stalker.js
 // @require includes/ui/dissaprop.js
+// @require lib/xhrQueue.js
 // ==/UserScript==
 
 var $content = $('#content'),
@@ -28,8 +29,12 @@ var $content = $('#content'),
 
         async: async,
 
-        giveProp: function (id, cb) {
-            $.post('https://www.fitocracy.com/give_prop/', {id: id}, function (data) {
+        xhr: xhrQueue(async),
+
+        xhrFactory: xhrQueue,
+
+        giveProp: function (id, cb, xhrQueue) {
+            (xhrQueue || App.xhr).post('https://www.fitocracy.com/give_prop/', {id: id}, function (data) {
                 cb(data);
             });
         },
