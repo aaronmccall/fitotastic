@@ -38,7 +38,7 @@ var Mffs = (function ($, _) {
         queued_friends = [],
         friend_list = [],
         App, xhr, proppables_xhr, $modal, $modal_contents, $list_table, $list_div, $friend_row,
-        friend_count, friend_url, friends_per_stalker_page, friends_per_stalker_row, get_last_conversation;
+        friend_count, friend_url, friends_per_stalker_page, friends_per_stalker_row, get_last_conversation, end_of_friends;
 
     function date_prettifier(_, match) {
         var output = '';
@@ -288,6 +288,7 @@ var Mffs = (function ($, _) {
                     // console.log('adding %s friends to friend_list', friends.length);
                     friend_list.push.apply(friend_list, friends);
                 }
+                if (friends.length < friends_per_friend_page) end_of_friends = true;
                 return process_friends(friends, cb);
             }
             // console.log('server response was NOT an array for friend page %s', page);
@@ -336,6 +337,7 @@ var Mffs = (function ($, _) {
                         return process_friends(sliced, cb);
                     }
                 }
+                if (end_of_friends) return cb('done');
                 load_friends(friend_page++, cb);
             },
 

@@ -11,7 +11,7 @@
     "main.js"
   ], 
   "homepage_url": "https://fitotastic.amac.me", 
-  "version": "0.2.3", 
+  "version": "0.2.4", 
   "id": "{005E431A-6057-4AC6-8694-3ACE08DED92E}", 
   "description": "A set of helpers and tools for Fitocracy that assist with connection and communication."
 }
